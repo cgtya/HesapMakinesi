@@ -1,0 +1,19 @@
+venv/
+.venv/
+env/
+bin/
+include/
+lib/
+lib64/
+share/
+
+__pycache__/
+*.pyc
+
+pyvenv.cfg
+
+# editor settings
+.vscode/
+.idea/
+.DS_Store
+lib64
