@@ -20,10 +20,10 @@ from sympy.integrals.manualintegrate import (
 @dataclass
 class MathStep:
     type: str             # "Integral", "Derivative", "Simplification"
-    rule: str             # Kural Adi (Orn: PowerRule)
-    input_latex: str      # Islem oncesi ifade
-    output_latex: str     # Islem sonrasi ifade veya aciklama
-    description: str      # Insan okunabilir aciklama
+    rule: str             # kural Adi (Orn: PowerRule)
+    input_latex: str      # islem oncesi ifade
+    output_latex: str     # islem sonrasi ifade
+    description: str      # aciklama
     substeps: List['MathStep'] = field(default_factory=list)
 
     def to_dict(self):
@@ -39,12 +39,12 @@ class MathStep:
 # --- 2. INTEGRAL KURAL CEVIRICISI (SAFE CONVERTER) ---
 class IntegralConverter:
     """
-    SymPy kural nesnelerini MathStep nesnesine cevirir.
-    Hata cikarabilecek karmasik rule importlari yerine yapisal kontrol yapar.
+    sympy kural nesnelerini MathStep nesnesine cevirir.
+    hata cikarabilecek karmasik rule importlari yerine yapisal kontrol yapar.
     """
     
     def convert(self, rule: Any, current_expr: Basic = None) -> MathStep:
-        # Kural ismini al (Orn: 'AddRule' -> 'Add')
+        # kural ismini al (Orn: 'AddRule' -> 'Add')
         rule_name = rule.__class__.__name__.replace("Rule", "")
         
         # Varsayilan (bos) adim olustur
