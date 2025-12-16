@@ -573,16 +573,15 @@ class MathSolver:
 # --- TEST ---
 if __name__ == "__main__":
     solver = MathSolver()
-    
+
     """
+    print("\n--- Test 2: Parts ---")
+    res2 = solver.solve(r"\int_{}^{}x\tandx")
+    print(json.dumps(res2, indent=2))
+    
     print("--- Test 1: Piecewise / Abs ---")
     res1 = solver.solve(r"\int |x| dx")
     print(json.dumps(res1, indent=2))
-
-    # SENARYO 2: Kismi Integrasyon (PartsRule)
-    print("\n--- Test 2: Parts ---")
-    res2 = solver.solve(r"\int x e^x dx")
-    print(json.dumps(res2, indent=2))
     
     
     # SENARYO 3: Belirli Integral + Sabit
