@@ -17,3 +17,10 @@ pyvenv.cfg
 .idea/
 .DS_Store
 lib64
+
+./.tmpdir
+/training_data/formula_images_processed
+checkpoint_*
+optimizer_*
+scaler_*
+/training_*
