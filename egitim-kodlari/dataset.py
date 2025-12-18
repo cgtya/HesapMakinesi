@@ -5,7 +5,6 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-
 class Im2LatexCSV(Dataset):
     def __init__(self, csv_path, image_folder, stoi, max_len=256):
         self.image_folder = image_folder
