@@ -8,6 +8,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 import pandas as pd
 import json
+import matplotlib.pyplot as plt
 
 from dataset import Im2LatexCSV
 from Im2LatexModel import Im2LatexModel
@@ -21,19 +22,22 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, "..", "training_data", "im2latex_train.csv")
 VAL_PATH = os.path.join(BASE_DIR, "..", "training_data", "im2latex_validate.csv")
 IMAGE_FOLDER = os.path.join(BASE_DIR, "..", "training_data", "formula_images_processed", "formula_images_processed")
+LOSS_HISTORY_PATH = "loss_history.json"
+
 
 BATCH_SIZE = 64
-EPOCHS = 10
+EPOCHS = 15
 LR = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-CPU_CORES = 4 #0 - tek çekirdek, diğer hallerde çekirdek sayısı
+CPU_CORES = 4 # 0 - tek çekirdek, diğer hallerde çekirdek sayısı
 
 # --- Vocab ---
 df = pd.read_csv(CSV_PATH)
 formulas = df['formula'].tolist()  # sütun adını kendi dosyana göre ayarla
 vocab = set()
 for formula in formulas:
-    for tok in formula.split():
+    tokens = formula.split()
+    for tok in tokens:
         vocab.add(tok)
 
 stoi = {"<pad>":0, "<sos>":1, "<eos>":2, "<unk>":3}
@@ -52,6 +56,17 @@ print("Vocab size:", len(stoi))  # 544
 train_losses = []
 val_losses = []
 
+if os.path.exists(os.path.join(BASE_DIR,"..",LOSS_HISTORY_PATH)):
+    try:
+        with open(os.path.join(BASE_DIR,"..",LOSS_HISTORY_PATH), "r") as f:
+            history = json.load(f)
+            train_losses = history.get("train_losses", [])
+            val_losses = history.get("val_losses", [])
+            print(f"loss geçmişi yüklendi. {len(train_losses)} epoch veri bulundu.")
+    except Exception as e:
+        print(f"loss geçmişi yüklenemedi: {e}")
+
+
 # -----------------------------# 2. Veri Yükleyiciler
 train_ds = Im2LatexCSV(CSV_PATH, IMAGE_FOLDER, stoi)
 val_ds = Im2LatexCSV(VAL_PATH, IMAGE_FOLDER, stoi)
@@ -66,22 +81,22 @@ val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False,
 
 # -----------------------------# 3. Model, Kayıp Fonksiyonu ve Optimizatör
 model = Im2LatexModel(vocab_size=len(stoi)).to(DEVICE)
-criterion = nn.CrossEntropyLoss(ignore_index=stoi["<pad>"])
-optimizer = optim.Adam(model.parameters(), lr=LR)
-# optimizer = torch.optim.Adam(model.parameters(), lr=1e-4) # Duplicate removed
 
-# Basit bir StepLR örneği
+weights = torch.ones(len(stoi)).to(DEVICE)
+weights[stoi["<unk>"]] = 10.0  # <unk> hatalarına 10 kat ceza
+
+criterion = nn.CrossEntropyLoss(weight=weights, ignore_index=stoi["<pad>"], label_smoothing=0.1)
+optimizer = optim.Adam(model.parameters(), lr=LR)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-# AMP Scaler
+# amp scaler (mixed precision) destekleyen donanımda daha hızlı eğitilir
 scaler = torch.amp.GradScaler('cuda')
 
-
-# Model, optimizer, scheduler tanımlandıktan sonra
+# epoch checkpointleri kontrolü
 start_epoch = 1
 checkpoints = glob.glob("checkpoint_epoch*.pth")
 if checkpoints:
-    # Dosya isimlerinden epoch numaralarını ayıkla
+    # dosya isimlerinden epoch numaralarını ayıkla
     epochs_found = []
     for cp in checkpoints:
         match = re.search(r"checkpoint_epoch(\d+).pth", cp)
@@ -95,18 +110,18 @@ if checkpoints:
         
         try:
             model.load_state_dict(torch.load(latest_cp, map_location=device))
-            print("Model weights loaded.")
+            print("model yüklendi.")
             
             # Optimizer checkpoint'i varsa yükle
             opt_cp = f"optimizer_epoch{max_epoch}.pth"
             if os.path.exists(opt_cp):
-                print(f"Loading optimizer checkpoint: {opt_cp}")
+                print(f"optimizer yüklendi: {opt_cp}")
                 optimizer.load_state_dict(torch.load(opt_cp, map_location=device))
             
             # Scaler checkpoint'i varsa yükle (AMP için)
             scaler_cp = f"scaler_epoch{max_epoch}.pth"
             if os.path.exists(scaler_cp):
-                print(f"Loading scaler checkpoint: {scaler_cp}")
+                print(f"scaler yüklendi: {scaler_cp}")
                 scaler.load_state_dict(torch.load(scaler_cp, map_location=device))
 
             start_epoch = max_epoch + 1
@@ -154,7 +169,7 @@ for epoch in range(start_epoch, EPOCHS+1):
     torch.save(scaler.state_dict(), f"scaler_epoch{epoch}.pth")
     print(f"Checkpoint saved for epoch {epoch}")
 
-    scheduler.step() # Scheduler step eklendi
+    scheduler.step()
 
     avg_loss = total_loss / len(train_loader)
 
@@ -178,10 +193,17 @@ for epoch in range(start_epoch, EPOCHS+1):
     train_losses.append(avg_loss)
     val_losses.append(val_loss)
 
+    # loss geçmişini kaydet
+    history = {
+        "train_losses": train_losses,
+        "val_losses": val_losses
+    }
+    with open("loss_history.json", "w") as f:
+        json.dump(history, f)
+
+
 # -----------------------------# 5. Kayıp Grafiği
 plt.figure(figsize=(8,5))
-# Epoch aralığı start_epoch'tan EPOCHS'a kadar olabilir, ama train_losses listesi 0'dan başlar.
-# Düzgün çizim için x eksenini train_losses uzunluğuna göre ayarlıyoruz.
 epochs_range = range(start_epoch, start_epoch + len(train_losses))
 plt.plot(epochs_range, train_losses, label="Train Loss", marker="o")
 plt.plot(epochs_range, val_losses, label="Validation Loss", marker="o")

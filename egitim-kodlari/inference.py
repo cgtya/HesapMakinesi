@@ -9,7 +9,7 @@ import os
 # Settings
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHECKPOINT_PATH = os.path.join(BASE_DIR, "..", "checkpoint_epoch2.pth")
+CHECKPOINT_PATH = os.path.join(BASE_DIR, "..", "checkpoint_epoch15.pth")
 STOI_PATH = os.path.join(BASE_DIR, "..", "stoi.json")
 ITOS_PATH = os.path.join(BASE_DIR, "..", "itos.json")
 IMG_PATH = os.path.join(BASE_DIR, "test.png")
@@ -93,6 +93,27 @@ def main():
     print(f"Vocab size: {len(stoi)}")
     print("Running inference...")
     
+    # Image Stats Debug
+    extrema = image.getextrema()
+    print(f"Image Extrema (RGB): {extrema}")
+    
+    # Check first few steps detail
+    model.eval()
+    with torch.no_grad():
+         tgt_indices = [stoi["<sos>"]]
+         tgt_tensor = torch.LongTensor(tgt_indices).unsqueeze(0).to(DEVICE)
+         
+         logits = model(img_tensor, tgt_tensor)
+         last_logits = logits[0, -1, :]
+         probs = torch.softmax(last_logits, dim=0)
+         top_probs, top_ids = torch.topk(probs, 5)
+         
+         print("Top 5 predictions at start:")
+         for p, idx in zip(top_probs, top_ids):
+             token_str = itos.get(idx.item(), "Unknown")
+             print(f"  Token: '{token_str}' (ID: {idx.item()}), Prob: {p.item():.4f}")
+
+
     latex_output = greedy_decode(model, img_tensor, stoi=stoi, itos=itos)
     
     print("-" * 30)
