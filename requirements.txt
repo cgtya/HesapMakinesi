@@ -32,3 +32,6 @@ sympy==1.14.0
 torch
 torchvision
 typing_extensions==4.15.0
+opencv-python
+pandas
+tqdm
