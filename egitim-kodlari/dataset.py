@@ -4,15 +4,6 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
-import re
-
-def latex_tokenize(s: str):
-    s = s.strip()
-    tokens = re.findall(r'(\\[A-Za-z]+)|[{}_^]|[\[\]\(\)]|[0-9]+|[A-Za-z]+|[^ \t\n]', s)
-    return tokens
-
-CSV_PATH = r"C:\Users\cemal\OneDrive\Desktop\Proje_Egitim\im2latex_validate.csv"
-IMAGE_FOLDER = r"C:\Users\cemal\OneDrive\Desktop\Proje_Egitim\formula_images_processed"
 
 class Im2LatexCSV(Dataset):
     def __init__(self, csv_path, image_folder, stoi, max_len=256):
@@ -36,7 +27,7 @@ class Im2LatexCSV(Dataset):
         ])
 
     def encode(self, s):
-        toks = latex_tokenize(s)
+        toks = s.split() # Veri seti zaten bosluklarla ayrilmis
         ids = [self.stoi["<sos>"]] + [self.stoi.get(t, self.stoi["<unk>"]) for t in toks] + [self.stoi["<eos>"]]
         ids = ids[:self.max_len]
         return torch.tensor(ids, dtype=torch.long)

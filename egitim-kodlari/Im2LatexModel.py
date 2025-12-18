@@ -27,7 +27,12 @@ class Im2LatexModel(nn.Module):
         # Son çıkış: vocab tahmini
         self.output_layer = nn.Linear(hidden_dim, vocab_size)
 
-    def forward(self, images, tgt_seq):
+    def generate_square_subsequent_mask(self, sz):
+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+        return mask
+
+    def forward(self, images, tgt_seq, tgt_mask=None):
         # Encoder
         feats = self.encoder(images)  # [B, C, H, W]
         B, C, H, W = feats.shape
@@ -39,8 +44,13 @@ class Im2LatexModel(nn.Module):
         tgt_emb = self.token_emb(tgt_seq) + self.pos_emb[:tgt_seq.shape[1]]
         tgt_emb = tgt_emb.permute(1, 0, 2)  # [seq_len, B, dim]
 
+        # Generate mask if not provided
+        if tgt_mask is None:
+            device = tgt_seq.device
+            tgt_mask = self.generate_square_subsequent_mask(tgt_seq.shape[1]).to(device)
+
         # Transformer decoder
-        out = self.decoder(tgt_emb, feats)  # [seq_len, B, dim]
+        out = self.decoder(tgt_emb, feats, tgt_mask=tgt_mask)  # [seq_len, B, dim]
         out = out.permute(1, 0, 2)  # [B, seq_len, dim]
         logits = self.output_layer(out)  # [B, seq_len, vocab_size]
         return logits
