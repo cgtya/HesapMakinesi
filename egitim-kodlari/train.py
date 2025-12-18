@@ -23,6 +23,8 @@ CSV_PATH = os.path.join(BASE_DIR, "..", "training_data", "im2latex_train.csv")
 VAL_PATH = os.path.join(BASE_DIR, "..", "training_data", "im2latex_validate.csv")
 IMAGE_FOLDER = os.path.join(BASE_DIR, "..", "training_data", "formula_images_processed", "formula_images_processed")
 LOSS_HISTORY_PATH = "loss_history.json"
+STOI_PATH = os.path.join(BASE_DIR, "..", "stoi.json")
+ITOS_PATH = os.path.join(BASE_DIR, "..", "itos.json")
 
 
 BATCH_SIZE = 64
@@ -46,9 +48,9 @@ for i, tok in enumerate(sorted(vocab), start=4):
 itos = {v:k for k,v in stoi.items()}
 
 # JSON'a kaydet (sonradan inference için)
-with open("stoi.json", "w", encoding="utf-8") as f:
+with open(STOI_PATH, "w", encoding="utf-8") as f:
     json.dump(stoi, f, ensure_ascii=False, indent=2)
-with open("itos.json", "w", encoding="utf-8") as f:
+with open(ITOS_PATH, "w", encoding="utf-8") as f:
     json.dump(itos, f, ensure_ascii=False, indent=2)
 
 print("Vocab size:", len(stoi))  # 544
