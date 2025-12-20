@@ -26,3 +26,4 @@ checkpoint_*
 optimizer_*
 scaler_*
 /training_old
+islem_log.txt
