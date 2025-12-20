@@ -16,6 +16,54 @@ from sympy.integrals.manualintegrate import (
     TrigRule, ExpRule, ReciprocalRule, DontKnowRule
 )
 
+# turev kurallari
+@dataclass
+class DerivRule:
+    expr: Any
+    variable: Any
+
+@dataclass
+class ConstantDiffRule(DerivRule):
+    pass
+
+@dataclass
+class IdentityDiffRule(DerivRule):
+    pass
+
+@dataclass
+class PowerDiffRule(DerivRule):
+    base: Any
+    exp: Any
+    
+@dataclass
+class AddDiffRule(DerivRule):
+    terms: List[DerivRule]
+
+@dataclass
+class ProductDiffRule(DerivRule):
+    terms: List[Any]  # f, g
+    derivs: List[DerivRule] # f', g'
+
+@dataclass
+class ChainDiffRule(DerivRule):
+    outer_func: Any
+    inner_func: Any
+    inner_deriv: DerivRule
+
+@dataclass
+class TrigDiffRule(DerivRule):
+    func_name: str
+    arg: Any
+    
+@dataclass
+class ExpDiffRule(DerivRule):
+    base: Any
+    arg: Any
+
+@dataclass
+class LogDiffRule(DerivRule):
+    arg: Any
+    base: Any
 
 # --- 1. VERI MODELI ---
 @dataclass
@@ -38,7 +86,232 @@ class MathStep:
         }
 
 
-# --- 2. INTEGRAL KURAL CEVIRICISI ---
+# --- 2. KURAL CEVIRICILERI ---
+class DerivativeConverter:
+
+    """
+    Verilen ifadeyi manuel turev kurallarina gore analiz eder ve MathStep olusturur.
+    sympyda 'manualintegrate' gibi bir metot olmadigi icin bunu biz yapiyoruz.
+    """
+    
+    def derive(self, expr: Basic, var: Symbol) -> MathStep:
+        rule = self._find_rule(expr, var)
+        return self._convert_rule_to_step(rule)
+
+    def _find_rule(self, expr: Basic, var: Symbol) -> DerivRule:
+        # 1. Sabit (Constant)
+        if not expr.has(var):
+            return ConstantDiffRule(expr, var)
+            
+        # 1.5 Degiskenin kendisi (Identity)
+        if expr == var:
+            return IdentityDiffRule(expr, var)
+        
+        # 2. Toplama (Add)
+        if isinstance(expr, Add):
+            sub_rules = [self._find_rule(arg, var) for arg in expr.args]
+            return AddDiffRule(expr, var, sub_rules)
+            
+        # 3. Carpma (Mul) - Product Rule
+        if isinstance(expr, Mul):
+            # Basitlestirme: Ikili carpim gibi dusunelim veya zincirleme
+            # Sympy Mul argumanlarini duzlestirir, ornek x*y*z -> (x, y*z) seklinde recursively cozebiliriz
+            # Ya da hepsini listeye alip genel carpim kurali
+            
+            # Katsayi varsa ayiralim mi? Ornek 5*x^2 -> ConstantTimes aslinda Add icinde handle edilebilir ama Mul buraya duser.
+            # Eger argumanlarin sadece biri degiskene bagliysa -> ConstantMultiple
+            dep_args = [arg for arg in expr.args if arg.has(var)]
+            if len(dep_args) == 0:
+                return ConstantDiffRule(expr, var)
+            elif len(dep_args) == 1:
+                # Constant multiple: c * f(x)
+                # Bunu da ProductRule gibi gosterebiliriz veya ayri constant rule
+                # Tutarlilik icin ProductRule dondurelim, 0 turev gosterilir.
+                pass 
+            
+            # Genel Carpim Kurali
+            # f * g * h ...
+            return ProductDiffRule(expr, var, expr.args, [self._find_rule(arg, var) for arg in expr.args])
+
+        # 4. Us (Pow)
+        if isinstance(expr, Pow):
+            base, exp = expr.args
+            
+            # x^n (n sabit) -> Power Rule
+            if base == var and not exp.has(var):
+                return PowerDiffRule(expr, var, base, exp)
+                
+            # u(x)^n (Zincir kurali ile Power Rule)
+            if not exp.has(var): # base degiskenli
+                # Chain Rule ozel durumu: PowerChain
+                # Outer: u^n, Inner: u
+                inner_rule = self._find_rule(base, var)
+                return ChainDiffRule(expr, var, "Pow", base, inner_rule)
+
+            # a^x (Ustel)
+            if not base.has(var) and exp.has(var):
+                return ExpDiffRule(expr, var, base, exp)
+                
+            # x^x (Logaritmik turev gerekir, simdilik Chain gibi bakalim veya Exp(x*ln(x)))
+            # Sympy buna genellikle exp(b * ln(a)) donusumu yapar.
+            # Biz direkt ChainRule dondurelim.
+            pass
+
+        # 5. Fonksiyonlar (Trig, Exp, Log vb.)
+        # func(u(x)) -> Zincir Kurali
+        if expr.is_Function:
+            func_name = expr.func.__name__
+            arg = expr.args[0]
+            
+            # Eger arguman sadece 'var' ise -> Basic Rule
+            if arg == var:
+                if func_name in ['sin', 'cos', 'tan', 'cot', 'sec', 'csc']:
+                    return TrigDiffRule(expr, var, func_name, arg)
+                if func_name == 'exp':
+                    return ExpDiffRule(expr, var, Symbol('e'), arg)
+                if func_name == 'log' or func_name == 'ln':
+                     return LogDiffRule(expr, var, arg, Symbol('e'))
+            
+            # Degilse Chain Rule
+            inner_rule = self._find_rule(arg, var)
+            return ChainDiffRule(expr, var, expr.func, arg, inner_rule)
+
+        # Fallback
+        return ConstantDiffRule(expr, var) # Aslinda bilinmeyen, ama 0 donsun simdilik
+
+    def _convert_rule_to_step(self, rule: DerivRule) -> MathStep:
+        step = MathStep("Derivative", "Unknown", latex(rule.expr), "", "", [])
+        var = rule.variable
+        
+        if isinstance(rule, ConstantDiffRule):
+            step.rule = "ConstantRule"
+            step.description = "Sabit sayinin turevi 0'dir."
+            step.output_latex = "0"
+            
+        elif isinstance(rule, IdentityDiffRule):
+            step.rule = "IdentityRule"
+            step.description = "Degiskenin kendisine gore turevi 1'dir."
+            step.output_latex = "1"
+            
+        elif isinstance(rule, AddDiffRule):
+            step.rule = "SumRule"
+            step.description = "Toplam Turevi: Her terimin ayri ayri turevi alinir."
+            terms_out = []
+            for r in rule.terms:
+                s = self._convert_rule_to_step(r)
+                step.substeps.append(s)
+                # Sadece 0 olmayanlari ekle (veya tek terim ise ekle)
+                if s.output_latex != "0":
+                    terms_out.append(s.output_latex)
+            
+            if not terms_out:
+                step.output_latex = "0"
+            else:
+                step.output_latex = " + ".join(terms_out).replace("+ -", "- ")
+            
+        elif isinstance(rule, PowerDiffRule):
+            step.rule = "PowerRule"
+            n = rule.exp
+            # n*x^(n-1)
+            step.description = "Us Kurali: Us basa carpan olarak gelir, us bir azaltilir."
+            from sympy import Number
+            new_exp = n - 1
+            if new_exp == 0:
+                 step.output_latex = f"{latex(n)}"
+            elif new_exp == 1:
+                 step.output_latex = f"{latex(n)}{latex(rule.base)}"
+            else:
+                 step.output_latex = f"{latex(n)}{latex(rule.base)}^{{{latex(new_exp)}}}"
+
+        elif isinstance(rule, ProductDiffRule):
+            step.rule = "ProductRule"
+            step.description = "Carpim Kurali: Birincinin turevi x ikinci + ikincinin turevi x birinci"
+            
+            total_sum = []
+            terms = rule.terms
+            derivs = rule.derivs # sub steps
+            
+            for i in range(len(terms)):
+                # Term i'nin turevi
+                d_step = self._convert_rule_to_step(derivs[i])
+                step.substeps.append(d_step)
+                
+                # Eger turev 0 ise bu terim duser
+                if d_step.output_latex == "0":
+                    continue
+                    
+                # Formula parcasi: f' * (digerleri)
+                others = [latex(t) for k, t in enumerate(terms) if k != i]
+                
+                part = ""
+                # Eger turev 1 ise ve baska carpanlar varsa direk diger carpanlari yaz
+                if d_step.output_latex == "1" and others:
+                    part = " \\cdot ".join(others)
+                else:
+                    part = d_step.output_latex
+                    if others:
+                        part += " \\cdot " + " \\cdot ".join(others)
+                        
+                total_sum.append(part)
+            
+            if not total_sum:
+                step.output_latex = "0"
+            else:
+                step.output_latex = " + ".join(total_sum)
+            
+        elif isinstance(rule, ChainDiffRule):
+            step.rule = "ChainRule"
+            step.description = "Zincir Kurali: Dis fonksiyonun turevi (ic aynen) x ic fonksiyonun turevi"
+            
+            inner_step = self._convert_rule_to_step(rule.inner_deriv)
+            step.substeps.append(inner_step)
+            
+            # Dis turevi hesapla (Sympy ile)
+            # f(u) -> f'(u)
+            # Burada sembolik bir trick yapacagiz: diff(f(dummy)).subs(dummy, u)
+            from sympy import Dummy, Function
+            u_dummy = Dummy('u')
+            
+            if isinstance(rule.outer_func, str) and rule.outer_func == "Pow":
+                # u^n -> n*u^(n-1)
+                base = rule.inner_func # Original inner
+                 # Aslinda PowerDiffRule daki exp lazim burada ama ChainDiffRule'a tasimadik.
+                 # HACK: expr'den cekelim
+                if isinstance(rule.expr, Pow):
+                    exp = rule.expr.args[1]
+                    outer_deriv = exp * Pow(u_dummy, exp-1)
+                else:
+                    outer_deriv = sympify(1) # Fail safe
+            else:
+                # sin(u), exp(u) vs
+                func_cls = rule.outer_func # sin class
+                outer_deriv = diff(func_cls(u_dummy), u_dummy)
+            
+            # Substitute back
+            outer_res = outer_deriv.subs(u_dummy, rule.inner_func)
+            
+            if inner_step.output_latex == "1":
+                 step.output_latex = f"{latex(outer_res)}"
+            else:
+                 step.output_latex = f"({latex(outer_res)}) \\cdot ({inner_step.output_latex})"
+            
+        elif isinstance(rule, TrigDiffRule):
+             step.rule = "TrigRule"
+             step.description = f"{rule.func_name} fonksiyonunun turevi."
+             res = diff(rule.expr, rule.variable)
+             step.output_latex = latex(res)
+             
+        elif isinstance(rule, ExpDiffRule):
+             step.rule = "ExpRule"
+             step.description = "Ustel fonksiyon turevi."
+             res = diff(rule.expr, rule.variable)
+             step.output_latex = latex(res)
+        
+        # Son hesaplanan latex'i sympy ile basitlestirebilirdik ama
+        # adim adim gostermek istedigimiz icin ham birakmak daha egitici olabilir.
+        
+        return step
+    
 class IntegralConverter:
     """
     SymPy kural nesnelerini MathStep nesnesine cevirir.
@@ -179,18 +452,6 @@ class IntegralConverter:
 
         return step
 
-
-# --- 3. TUREV CONVERTER (KISA) ---
-class DerivativeConverter:
-    def derive(self, expr: Basic, var: Symbol) -> MathStep:
-        # Basit türev adımı (Detaylı ağaç yerine işlem sonucu)
-        res = diff(expr, var)
-        return MathStep(
-            "Derivative", "Diff",
-            latex(expr), latex(res),
-            f"{var} değişkenine göre türev alınır.",
-            []
-        )
 
 
 # --- 4. ANA COZUCU SINIF ---
