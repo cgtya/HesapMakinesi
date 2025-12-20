@@ -276,7 +276,7 @@ def main(page: ft.Page) -> None:
 
     def sonuc_goster(islem, sonuc, cozum):
         page.clean()
-        adim=ft.ElevatedButton(text="Adım Adım Çöz...")
+        adim=ft.ElevatedButton(text="Adım Adım Çöz...",on_click=lambda e:adim_adim_ekrani(latexe_cevir(islem)))
         geri=ft.ElevatedButton(text="Geri Dön", on_click=normal_yap)
         tum_yazi=ft.TextField(value=f"İşlem: {islem}\nSonuç: {sonuc}\n\n Çözüm: {cozum}\n\n Sonuç: {sonuc}", text_align="left", width=380, read_only=False, border_color="grey",multiline=True)
         page.add(geri,adim,tum_yazi)
