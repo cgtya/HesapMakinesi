@@ -1,3 +1,12 @@
+## mathwriting branch!!
+https://arxiv.org/html/2404.10690v2
+mathwriting dosyalarını indirdikten sonra tgz içeriğini training_data klasörüne at
+
+(./training_data/mathwriting-2024/..) şeklinde
+
+
+
+
 terminalde proje klasörüne gir
 
 "python -m venv ." yada "python3 -m venv ."
