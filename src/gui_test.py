@@ -26,8 +26,7 @@ BOS_RESIM = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAY
 
 def main(page: ft.Page) -> None:
     page.title = "Hesap Makinesi"
-    page.window.width = 480
-    page.window.height = 720
+    page.window.maximized = True
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = ft.Colors.GREY_900
     page.scroll = ft.ScrollMode.AUTO
@@ -325,72 +324,75 @@ def main(page: ft.Page) -> None:
     bilimkose_stili = ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5))
 
     normal_row1 = ft.Row(
-        [ft.ElevatedButton("7", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+        [ft.ElevatedButton("7", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("8", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton("8", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("9", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton("9", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("+", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="yellow",
+         ft.ElevatedButton("+", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.YELLOW_300,
                            color="black")], alignment=ft.MainAxisAlignment.CENTER)
     normal_row2 = ft.Row(
-        [ft.ElevatedButton("4", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+        [ft.ElevatedButton("4", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("5", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton("5", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("6", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton("6", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("-", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="yellow",
+         ft.ElevatedButton("-", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.YELLOW_300,
                            color="black")], alignment=ft.MainAxisAlignment.CENTER)
     normal_row3 = ft.Row(
-        [ft.ElevatedButton("1", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+        [ft.ElevatedButton("1", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("2", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton("2", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("3", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton("3", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton("×", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="yellow",
+         ft.ElevatedButton("×", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.YELLOW_300,
                            color="black")], alignment=ft.MainAxisAlignment.CENTER)
     normal_row4 = ft.Row(
-        [ft.ElevatedButton("0", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+        [ft.ElevatedButton("0", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton(".", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="grey",
+         ft.ElevatedButton(".", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
                            color="black"),
-         ft.ElevatedButton(",", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="black",
-                           color="white"),
-         ft.ElevatedButton("/", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="yellow",
+         ft.ElevatedButton(",", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.GREY_300,
+                           color="black"),
+         ft.ElevatedButton("/", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.YELLOW_300,
                            color="black")], alignment=ft.MainAxisAlignment.CENTER)
     normal_row5 = ft.Row(
-        [ft.ElevatedButton("=", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="green",
+        [ft.ElevatedButton("=", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.LIME_200,
                            color="black"),
-         ft.ElevatedButton("ANS", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="blue",
+         ft.ElevatedButton("ANS", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.BLUE_200,
                            color="black"),
-         ft.ElevatedButton("AC", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="orange",
+         ft.ElevatedButton("AC", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.DEEP_ORANGE_300,
                            color="black"),
-         ft.ElevatedButton("<--", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor="red",
+         ft.ElevatedButton("<--", on_click=tus_basma, style=kose_stili, width=50, height=50, bgcolor=ft.Colors.RED_400,
                            color="black")], alignment=ft.MainAxisAlignment.CENTER)
     bilim_row1 = ft.Row(
-        [ft.ElevatedButton("x²", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("x", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("^", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("√", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black")],
+        [ft.ElevatedButton("x²", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("x", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("^", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("√", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black")],
         alignment=ft.MainAxisAlignment.CENTER)
     bilim_row2 = ft.Row(
-        [ft.ElevatedButton("sin", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("cos", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("tan", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("log", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange",
+        [ft.ElevatedButton("sin", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("cos", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("tan", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("log", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200,
                            color="black")], alignment=ft.MainAxisAlignment.CENTER)
     bilim_row3 = ft.Row(
-        [ft.ElevatedButton("∫", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton("f'(x)", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange",
+        [ft.ElevatedButton("∫", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton("f'(x)", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200,
                            color="black"),
-         ft.ElevatedButton("(", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black"),
-         ft.ElevatedButton(")", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor="orange", color="black")],
+         ft.ElevatedButton("(", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black"),
+         ft.ElevatedButton(")", on_click=tus_basma, style=bilimkose_stili, width=50, bgcolor=ft.Colors.ORANGE_200, color="black")],
         alignment=ft.MainAxisAlignment.CENTER)
 
-    tutor1 = ft.Text(value="İntegral: integrate(5x^4, (x,0,5))")
-    tutor2 = ft.Text(value="Türev: diff(sin(x), x)")
+    tutor1 = ft.Text(value="İntegral: integrate(fonskiyon, (x,alt,üst))")
+    tutor2 = ft.Text(value="Türev: diff(fonksiyon, x)")
+    tutor3 = ft.Text(value="Logaritma: log(tavan,taban)")
+    tutorCol= ft.Column(controls=[tutor1,tutor2,tutor3],alignment=ft.MainAxisAlignment.CENTER)
+    tutorRow=ft.Row(controls=[tutorCol],alignment=ft.MainAxisAlignment.CENTER)
 
     def adim_kart_olustur(step_data, derinlik=0):
         # --- 1. Veriyi Güvenli Çekme ---
@@ -507,31 +509,80 @@ def main(page: ft.Page) -> None:
 
         page.update()
 
-    anlat_buton = ft.ElevatedButton(text="Adım adım Çöz...", on_click=lambda e:adim_adim_ekrani(latexe_cevir(girdi_ekranı.value)))
+    def anlat_button_handler(e=None):
+        islem(girdi_ekranı.value)
+        adim_adim_ekrani(latexe_cevir(girdi_ekranı.value))
+
+    ozel_pencere = ft.Container(
+        width=300,
+        height=300,
+        bgcolor=ft.Colors.GREY_700,
+        border_radius=15,
+        border=ft.border.all(2, ft.Colors.LIGHT_BLUE_ACCENT_100),
+        padding=20,
+        visible=False,  # Başlangıçta gizli
+        content=ft.Column([
+            ft.Text("Fonksiyon Kullanımları:", size=20, weight="bold", color="white"),
+            ft.Divider(),
+            tutorCol,
+            ft.Divider(),
+            ft.ElevatedButton("Anladım!", on_click=lambda e: popup_kapat(e), bgcolor="red", color="white")
+        ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+    )
+
+    # Fonksiyonlar
+    def popup_ac(e):
+        ozel_pencere.visible = True
+        page.update()
+
+    def popup_kapat(e):
+        ozel_pencere.visible = False
+        page.update()
+
+    # --- NORMAL_YAP FONKSİYONUNU GÜNCELLEME ---
+    def normal_yap(e=None):
+        page.clean()
+        alt_bar.selected_index = 0
 
 
     def normal_yap(e=None):
         page.clean()
+        anlat_buton = ft.ElevatedButton(text="֍ Adım adım Çöz...", style=kose_stili, bgcolor=ft.Colors.CYAN_ACCENT_100,
+                                        width=232, height=50, on_click=lambda e: anlat_button_handler(e))
+        anlat_row = ft.Row(controls=[anlat_buton], alignment=ft.MainAxisAlignment.CENTER)
         alt_bar.selected_index = 0
         page.add(formul_container, row_girdi, row_sonuc, normal_row1, normal_row2, normal_row3, normal_row4,
-                 normal_row5,anlat_buton, alt_bar)
+                 normal_row5,anlat_row, alt_bar)
         page.update()
 
     def bilimsel_yap():
         page.clean()
+        anlat_buton = ft.ElevatedButton(text="֍ Adım adım Çöz...", style=kose_stili, bgcolor=ft.Colors.CYAN_ACCENT_100,
+                                        width=172, height=50, on_click=lambda e: anlat_button_handler(e))
+        soru_isareti=ft.ElevatedButton(text="?",style=kose_stili,width=50,height=50,bgcolor=ft.Colors.BLUE_GREY_700,color="white",on_click=lambda e: popup_ac(e))
+        anlat_row = ft.Row(controls=[anlat_buton,soru_isareti], alignment=ft.MainAxisAlignment.CENTER)
         alt_bar.selected_index = 1
-        page.add(formul_container, row_girdi, row_sonuc, bilim_row1, bilim_row2, bilim_row3, normal_row1, normal_row2,
-                 normal_row3, normal_row4, normal_row5,anlat_buton, tutor1, tutor2, alt_bar)
+
+        ana_icerik=ft.Column(controls=[formul_container, row_girdi, row_sonuc, bilim_row1, bilim_row2, bilim_row3, normal_row1, normal_row2,
+                 normal_row3, normal_row4, normal_row5,anlat_row])
+
+        stack=ft.Stack(controls=[ft.Container(content=ana_icerik,alignment=ft.alignment.center, expand=True),ozel_pencere],alignment=ft.alignment.center)
+
+        page.add(stack,alt_bar)
         page.update()
 
     def islemlog_yap():
         page.clean()
         page.scroll="auto"
+        buton_tipi=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8),color=ft.Colors.CYAN_ACCENT_100,side=ft.BorderSide(color=ft.Colors.WHITE24, width=1))
         alt_bar.selected_index = 3
         temizleme = ft.ElevatedButton(text="Geçmişi temizle", on_click=log_temizle, color="red",
-                                      bgcolor=ft.Colors.GREY_900)
+                                      bgcolor=ft.Colors.GREY_900,style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8),color=ft.Colors.CYAN_ACCENT_100,side=ft.BorderSide(color=ft.Colors.WHITE24, width=1)))
+        temizlemeRow=ft.Row(controls=[temizleme], spacing=5,alignment=ft.MainAxisAlignment.CENTER)
         gecmis_listesi = ft.Column(scroll=ft.ScrollMode.AUTO)
-        page.add(alt_bar, temizleme, gecmis_listesi)
+        yazi=ft.Text(value="-╣ İşlem Geçmişi ╠-",size=25)
+        yaziRow=ft.Row(controls=[yazi],alignment=ft.MainAxisAlignment.CENTER)
+        page.add(alt_bar,yaziRow, temizlemeRow, gecmis_listesi)
         eslesmeler = islem_oku()
         if eslesmeler:
             # eslesmeler artık bir demet (tuple) döndüğü için (İşlem, Sonuç, Çözüm)
@@ -542,11 +593,7 @@ def main(page: ft.Page) -> None:
                 if temp[1]: gosterilecek_metin += f"  ({temp[1]})"
 
                 gecmis_listesi.controls.append(ft.Row(
-                    [ft.TextField(value=gosterilecek_metin, width=380, multiline=True, read_only=True,
-                                  border_color="grey")], alignment=ft.MainAxisAlignment.CENTER))
-
-                gecmis_listesi.controls.append(ft.Row(
-                    [ft.ElevatedButton(color="grey", text=f"İşlem: {temp[0]}\nSonuç: {temp[1]}",height=50,width=300,on_click=lambda e,islem=temp[0],sonuc=temp[1],cozum=temp[2]:sonuc_goster(islem,sonuc,cozum))], alignment=ft.MainAxisAlignment.CENTER))
+                    [ft.ElevatedButton(color="grey", text=f"İşlem: {temp[0]}\nSonuç: {temp[1]}",style=buton_tipi,height=50,width=300,on_click=lambda e,islem=temp[0],sonuc=temp[1],cozum=temp[2]:sonuc_goster(islem,sonuc,cozum))], alignment=ft.MainAxisAlignment.CENTER))
 
                 page.update()
 
