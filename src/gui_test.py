@@ -253,16 +253,20 @@ def main(page: ft.Page) -> None:
                 except:
                     pass
 
+            Log_ve_Cozum_Duzenli = sembolik_str.replace("ANS", soncevap).replace("**", "^")
+
             # Ekrana bas
             txt_ondalik.value = ondalik_str
-            txt_sonuc.value = sembolik_str
+            txt_sonuc.value = Log_ve_Cozum_Duzenli
             sonuc_kutusu.update()
+
+
 
             # Son cevabı güncelle (Sonraki işlem için)
             soncevap = sembolik_str
 
             # KAYDET (3 Parametre ile)
-            islem_kaydet(girdi_string, ondalik_str if ondalik_str else sembolik_str, sembolik_str)
+            islem_kaydet(girdi_string, Log_ve_Cozum_Duzenli if Log_ve_Cozum_Duzenli else ondalik_str if ondalik_str else sembolik_str, sembolik_str)
 
             islemsonrasi = True
             gercek_guncelleme(girdi_string)
@@ -542,11 +546,13 @@ def main(page: ft.Page) -> None:
     # --- NORMAL_YAP FONKSİYONUNU GÜNCELLEME ---
     def normal_yap(e=None):
         page.clean()
+        page.scroll = "Auto"
         alt_bar.selected_index = 0
 
 
     def normal_yap(e=None):
         page.clean()
+        page.scroll = "Auto"
         anlat_buton = ft.ElevatedButton(text="֍ Adım adım Çöz...", style=kose_stili, bgcolor=ft.Colors.CYAN_ACCENT_100,
                                         width=232, height=50, on_click=lambda e: anlat_button_handler(e))
         anlat_row = ft.Row(controls=[anlat_buton], alignment=ft.MainAxisAlignment.CENTER)
@@ -557,6 +563,7 @@ def main(page: ft.Page) -> None:
 
     def bilimsel_yap():
         page.clean()
+        page.scroll = "Auto"
         anlat_buton = ft.ElevatedButton(text="֍ Adım adım Çöz...", style=kose_stili, bgcolor=ft.Colors.CYAN_ACCENT_100,
                                         width=172, height=50, on_click=lambda e: anlat_button_handler(e))
         soru_isareti=ft.ElevatedButton(text="?",style=kose_stili,width=50,height=50,bgcolor=ft.Colors.BLUE_GREY_700,color="white",on_click=lambda e: popup_ac(e))
@@ -597,9 +604,27 @@ def main(page: ft.Page) -> None:
 
                 page.update()
 
+    sol_yazi = ft.Text(value="Özgün Model")
+    switch = ft.Switch(label=" Hazır Model")
+    switch_row = ft.Row(controls=[sol_yazi, switch], alignment=ft.MainAxisAlignment.CENTER)
+
+    def gorsel_ekran_handler(e=None):
+        if switch.value:
+            print("Switch sağda")
+        else:
+            print("Switch solda")
+
     def gorsel_yap():
         page.clean()
-        page.add(alt_bar)
+        page.scroll = False
+        yazi=ft.Text(value="֍ Görüntü İşleme",size=30,color=ft.Colors.CYAN_ACCENT_100)
+        yazi_row=ft.Row(controls=[yazi],alignment=ft.MainAxisAlignment.CENTER)
+        gorsel_button=ft.ElevatedButton(icon=ft.Icons.ADD_A_PHOTO,text= "Görsel ekleyin",on_click=lambda e: gorsel_ekran_handler(e),style=kose_stili)
+        gorsel_row=ft.Row(controls=[gorsel_button],alignment=ft.MainAxisAlignment.CENTER)
+        text1 = ft.Text(value="Açıklama:", size=23, color=ft.Colors.AMBER_700, text_align=ft.MainAxisAlignment.CENTER)
+        text2 = ft.Text(value="buraya cemalin yazdığı açıklama gelecek", size=14,text_align=ft.MainAxisAlignment.CENTER)
+        ana_column=ft.Column(controls=[yazi_row,ft.Container(height=20),switch_row,ft.Container(height=20),gorsel_row,ft.Container(height=20),text1,text2],alignment=ft.MainAxisAlignment.CENTER,horizontal_alignment=ft.CrossAxisAlignment.CENTER,expand=True)
+        page.add(ana_column,alt_bar)
 
 
     def ekran_degistir(e):
