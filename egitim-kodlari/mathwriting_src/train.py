@@ -97,7 +97,7 @@ if os.path.exists(LOSS_HISTORY_PATH):
 
 # -----------------------------# 2. Veri Yükleyiciler
 if 'df' in locals() and not df.empty and os.path.exists(IMAGE_FOLDER):
-    train_ds = Im2LatexCSV(df, IMAGE_FOLDER, stoi)
+    train_ds = Im2LatexCSV(df, IMAGE_FOLDER, stoi, augment=True)    # augment (ayarlanabilir), veri üzerinde oynamalar yaparak eğitimi iyileştirir
     print("train dataset uzunluğu:", len(train_ds))
     
     # val_ds = Im2LatexCSV(VAL_PATH, IMAGE_FOLDER, stoi) 
@@ -110,7 +110,7 @@ if 'df' in locals() and not df.empty and os.path.exists(IMAGE_FOLDER):
     
     # val_ds eklendi
     if os.path.exists(VAL_PATH):
-        val_ds = Im2LatexCSV(VAL_PATH, IMAGE_FOLDER, stoi)
+        val_ds = Im2LatexCSV(VAL_PATH, IMAGE_FOLDER, stoi, augment=False)
         val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False,
                                 collate_fn=lambda b: collate_fn(b, pad_idx=stoi["<pad>"]),
                                 num_workers=CPU_CORES, pin_memory=True)

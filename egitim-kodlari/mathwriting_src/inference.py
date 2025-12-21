@@ -6,14 +6,46 @@ from Im2LatexModel import Im2LatexModel  # Corrected import
 
 import os
 
-# Settings
+# opsiyonel opencv
+try:
+    import cv2
+    import numpy as np
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+    print("opencv bulunamadı, gelişmiş işleme devre dışı")
+
+# ayarlar
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Checkpoint assumption: same dir
 CHECKPOINT_PATH = os.path.join(BASE_DIR, "checkpoint_epoch15.pth")
 STOI_PATH = os.path.join(BASE_DIR, "stoi.json")
 ITOS_PATH = os.path.join(BASE_DIR, "itos.json")
 IMG_PATH = os.path.join(BASE_DIR, "test.png")
+
+def preprocess_for_inference(image_path):
+    """
+    gürültülü/gölgeli görüntüler için adaptif tresholding
+    """
+    if not OPENCV_AVAILABLE:
+        # standart PIL open
+        return Image.open(image_path).convert("RGB")
+    
+    img = cv2.imread(image_path)
+    if img is None:
+        raise FileNotFoundError(f"Image not found: {image_path}")
+        
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # adaptif tresholding: 
+    # blockSize=21, C=10 (ayarlanabilir)
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                   cv2.THRESH_BINARY, 21, 10)
+    
+    # griyi rgb'ye çevir
+    rgb = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
+    
+    return Image.fromarray(rgb)
 
 def load_vocab():
     with open(STOI_PATH, "r", encoding="utf-8") as f:
@@ -26,7 +58,7 @@ def load_vocab():
 def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
     model.eval()
     with torch.no_grad():
-        # 1. Encode image
+        # 1. encode image
         encoded = model.encoder(image_tensor)
         B, C, H, W = encoded.shape
         encoded = encoded.view(B, C, H * W).permute(0, 2, 1)  # [B, seq_len, C]
@@ -76,8 +108,10 @@ def main():
         return
 
     # Prepare Image
+    # Prepare Image
     try:
-        image = Image.open(IMG_PATH).convert("RGB")
+        # Use new preprocessing function
+        image = preprocess_for_inference(IMG_PATH)
     except FileNotFoundError:
         print(f"Image not found at {IMG_PATH}")
         return
