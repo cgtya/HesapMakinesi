@@ -4,6 +4,10 @@ mathwriting dosyalarını indirdikten sonra tgz içeriğini training_data klasö
 
 (./training_data/mathwriting-2024/..) şeklinde
 
+ardından preprocess_mathwriting.py scriptini çalıştır 
+sentetik veri de kullanılacaksa preprocess ve train scriptlerinde belirtilen değişkenleri değiştir
+
+ardından eğitim başlatılabilir
 
 
 
