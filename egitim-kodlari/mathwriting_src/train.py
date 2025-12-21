@@ -188,7 +188,8 @@ for epoch in range(start_epoch, EPOCHS+1):
     model.train()
     total_loss = 0
 
-    for imgs, tgts in tqdm(train_loader, desc=f"Epoch {epoch}/{EPOCHS}", unit="batch"):
+    loop = tqdm(train_loader, desc=f"Epoch {epoch}/{EPOCHS}", unit="batch", ncols=80)
+    for imgs, tgts in loop:
         imgs, tgts = imgs.to(DEVICE), tgts.to(DEVICE)
 
         optimizer.zero_grad()
@@ -213,9 +214,10 @@ for epoch in range(start_epoch, EPOCHS+1):
         scaler.update()
 
         total_loss += loss.item()
+        loop.set_postfix(loss=loss.item())
         
 
-    # Checkpointing logic
+    # checkpoint
     current_cp = os.path.join(SAVE_DIR, f"checkpoint_epoch{epoch}.pth")
     torch.save(model.state_dict(), current_cp)
     torch.save(optimizer.state_dict(), os.path.join(SAVE_DIR, f"optimizer_epoch{epoch}.pth"))
