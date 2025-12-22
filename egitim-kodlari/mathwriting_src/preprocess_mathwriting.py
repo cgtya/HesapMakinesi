@@ -8,11 +8,25 @@ import random
 import re
 from tqdm import tqdm
 
+from grid_helper import add_grid
+
+
+# synthetic veri icin (+400k)
+SYNTHETIC = False
+
 # islemci sayisi (core sayisi kadar)
 num_workers = os.cpu_count() or 4
 
 # rastgele seed
 random.seed(42)
+
+# kareli kagit ozelligini acip kapatmak icin degisken
+ENABLE_GRID_AUGMENTATION = True
+GRID_PROBABILITY = 1    # kareli kagit olma olasiligi (0.0 - 1.0)
+
+# kalın kalem
+THICK = False
+
 
 def tokenize_formula(formula):
     """
@@ -92,18 +106,27 @@ def render_traces(traces, output_path, dpi=100):
     fig, ax = plt.subplots(figsize=(4, 4)) # boyutu standarize et
     ax.set_aspect('equal')
     ax.axis('off')
-    
+
     # farkli kalemleri simule etmek icin rastgele kalinlik
     linewidth = random.uniform(1.0, 4.0)
+    if THICK:
+        linewidth = random.uniform(4.0, 8.0)
+
+    # Grid (Kareli kagit) eklentisi
+    if ENABLE_GRID_AUGMENTATION and random.random() < GRID_PROBABILITY:
+        try:
+            add_grid(ax, traces)
+        except Exception as e:
+            print(f"Grid eklenirken hata: {e}")
     
     for trace in traces:
         if not trace:
             continue
         data = np.array(trace)
         # matplotlib icin y eksenini ters cevir
-        ax.plot(data[:, 0], -data[:, 1], color='black', linewidth=linewidth)
+        ax.plot(data[:, 0], -data[:, 1], color='black', linewidth=linewidth, zorder=10)
         
-    plt.savefig(output_path, bbox_inches='tight', pad_inches=0.1, dpi=dpi)
+    plt.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=dpi)
     plt.close(fig)
 
 
@@ -179,12 +202,12 @@ if __name__ == "__main__":
     
     # islenecek klasorler
     SUBSETS = ["test", "train", "valid"] 
-    # SUBSETS = ["synthetic"] # synthetic verisi icin bunu acin
+    if SYNTHETIC:
+        SUBSETS.append("synthetic") # synthetic verisi icin bunu acin
     
-    OUTPUT_IMG_DIR = os.path.join(DATA_ROOT, "processed_images")
+    OUTPUT_IMG_DIR = os.path.join(DATA_ROOT, "processed_images"+"_grid" if ENABLE_GRID_AUGMENTATION else ""+"_thick" if THICK else "")
     
     for subset in SUBSETS:
         print(f"\nIslem basliyor: {subset}")
-        csv_path = os.path.join(DATA_ROOT, f"mathwriting_{subset}.csv")
-        
+        csv_path = os.path.join(DATA_ROOT, f"mathwriting_{subset}"+"_grid" if ENABLE_GRID_AUGMENTATION else ""+"_thick" if THICK else ""+".csv")
         process_dataset(DATA_ROOT, OUTPUT_IMG_DIR, csv_path, subset)
