@@ -1,5 +1,8 @@
+
 import random
 import math
+
+from matplotlib.collections import LineCollection
 
 def add_grid(ax, traces):
     """
@@ -59,19 +62,21 @@ def add_grid(ax, traces):
         )
 
     # kare cizgilerini olustur (merkezden disari dogru)
+    segments = []
+    
     # Dikey cizgiler
     x = 0
     while x < limit:
         # Saga dogru
         p1 = rotate_point(center_x + x, center_y - limit, center_x, center_y, angle_rad)
         p2 = rotate_point(center_x + x, center_y + limit, center_x, center_y, angle_rad)
-        ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=grid_color, linewidth=grid_linewidth, zorder=0)
+        segments.append([p1, p2])
         
         if x != 0:
             # Sola dogru
             p1 = rotate_point(center_x - x, center_y - limit, center_x, center_y, angle_rad)
             p2 = rotate_point(center_x - x, center_y + limit, center_x, center_y, angle_rad)
-            ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=grid_color, linewidth=grid_linewidth, zorder=0)
+            segments.append([p1, p2])
             
         x += step
 
@@ -81,18 +86,24 @@ def add_grid(ax, traces):
         # Yukari dogru
         p1 = rotate_point(center_x - limit, center_y + y, center_x, center_y, angle_rad)
         p2 = rotate_point(center_x + limit, center_y + y, center_x, center_y, angle_rad)
-        ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=grid_color, linewidth=grid_linewidth, zorder=0)
+        segments.append([p1, p2])
         
         if y != 0:
             # Asagi dogru
             p1 = rotate_point(center_x - limit, center_y - y, center_x, center_y, angle_rad)
             p2 = rotate_point(center_x + limit, center_y - y, center_x, center_y, angle_rad)
-            ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=grid_color, linewidth=grid_linewidth, zorder=0)
+            segments.append([p1, p2])
             
         y += step
+        
+    # tum cizgileri birlikte ciz
+    lc = LineCollection(segments, color=grid_color, linewidth=grid_linewidth, zorder=0)
+    ax.add_collection(lc)
+
 
     padding_x = width * 0.1
-    padding_y = height * 0.2
+    padding_y = width * 0.1
     
     ax.set_xlim(min_x - padding_x, max_x + padding_x)
     ax.set_ylim(min_y - padding_y, max_y + padding_y)
+
