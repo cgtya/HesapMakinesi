@@ -1,5 +1,4 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-
+.tmpdir
 venv/
 .venv/
 env/
@@ -20,25 +19,13 @@ pyvenv.cfg
 .DS_Store
 lib64
 
-./.tmpdir
 
 # egitim verileri
-./training_data/formula_images_processed
+training_data
+egitim_sonuclari
 *.png
 *.json
-checkpoint_*
-optimizer_*
-scaler_*
-/training_old
 islem_log.txt
-*.csv
-
-# mathwriting
-./training_data/mathwriting-2024
-*.inkml
-
-# egitim sonucu
-./egitim_sonuclari
 
 # geciciler
 ign_*

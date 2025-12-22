@@ -47,6 +47,7 @@ CPU_CORES = 4 # 0 - tek çekirdek, diğer hallerde çekirdek sayısı
 
 # --- Vocab ---
 dfs = []
+df = None
 for csv_path in TRAIN_CSVS:
     if os.path.exists(csv_path):
         dfs.append(pd.read_csv(csv_path))
@@ -96,7 +97,7 @@ if os.path.exists(LOSS_HISTORY_PATH):
 
 
 # -----------------------------# 2. Veri Yükleyiciler
-if 'df' in locals() and not df.empty and os.path.exists(IMAGE_FOLDER):
+if df is not None and not df.empty and os.path.exists(IMAGE_FOLDER):
     train_ds = Im2LatexCSV(df, IMAGE_FOLDER, stoi, augment=True)    # augment (ayarlanabilir), veri üzerinde oynamalar yaparak eğitimi iyileştirir
     print("train dataset uzunluğu:", len(train_ds))
     
@@ -214,7 +215,7 @@ for epoch in range(start_epoch, EPOCHS+1):
         scaler.update()
 
         total_loss += loss.item()
-        loop.set_postfix(loss=loss.item())
+            loop.set_postfix(loss=loss.item())
         
 
     # checkpoint

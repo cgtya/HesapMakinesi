@@ -2,17 +2,49 @@ import torch
 import json
 from PIL import Image
 import torchvision.transforms as transforms
-from Im2LatexModel import Im2LatexModel  # Corrected import
+from Im2LatexModel import Im2LatexModel
 
 import os
 
-# Settings
+# opsiyonel opencv
+try:
+    import cv2
+    import numpy as np
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+    print("opencv bulunamadı, gelişmiş işleme devre dışı")
+
+
+OPENCV_AVAILABLE = False
+
+
+# ayarlar
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHECKPOINT_PATH = os.path.join(BASE_DIR, "..", "checkpoint_epoch15.pth")
-STOI_PATH = os.path.join(BASE_DIR, "..", "stoi.json")
-ITOS_PATH = os.path.join(BASE_DIR, "..", "itos.json")
-IMG_PATH = os.path.join(BASE_DIR, "test.png")
+SAVE_DIR = os.path.join(BASE_DIR, "..", "..", "egitim_sonuclari", "mathwriting_exp")
+CHECKPOINT_PATH = os.path.join(SAVE_DIR, "checkpoint_epoch10.pth")
+STOI_PATH = os.path.join(SAVE_DIR, "stoi.json")
+ITOS_PATH = os.path.join(SAVE_DIR, "itos.json")
+IMG_PATH = os.path.join(BASE_DIR, "ign_testfoto/testbuyuk.png")
+
+def preprocess_for_inference(image_path):
+    # opencv kullanilamazsa standart PIL acilisi
+    if not OPENCV_AVAILABLE:
+        return Image.open(image_path).convert("RGB")
+    
+    img = cv2.imread(image_path)
+    if img is None:
+        raise FileNotFoundError(f"Image not found: {image_path}")
+        
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # bu islem acik gri (kagit dokusu gibi) pikselleri beyaza iter, koyu kisimlari korur
+    cleaned = cv2.convertScaleAbs(gray, alpha=1.5, beta=20.0)
+    
+    rgb = cv2.cvtColor(cleaned, cv2.COLOR_GRAY2RGB)
+    
+    return Image.fromarray(rgb)
 
 def load_vocab():
     with open(STOI_PATH, "r", encoding="utf-8") as f:
@@ -25,30 +57,26 @@ def load_vocab():
 def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
     model.eval()
     with torch.no_grad():
-        # 1. Encode image
+        # goruntuyu kodla
         encoded = model.encoder(image_tensor)
         B, C, H, W = encoded.shape
         encoded = encoded.view(B, C, H * W).permute(0, 2, 1)  # [B, seq_len, C]
         encoded = model.enc_proj(encoded) # [B, seq_len, hidden_dim]
-        encoded = encoded.permute(1, 0, 2) # [seq_len, B, hidden_dim] (Transformer ordering)
+        encoded = encoded.permute(1, 0, 2) # [seq_len, B, hidden_dim] (Transformer siralamasi)
         
-        # 2. Decode
-        # Start with <sos>
+        # cozumle
+        # <sos> ile basla
         tgt_indices = [stoi["<sos>"]]
         
         for i in range(max_len):
             tgt_tensor = torch.LongTensor(tgt_indices).unsqueeze(0).to(DEVICE) # [1, seq]
             
-            # Forward pass through decoder components manually or use model parts if exposed?
-            # The model's forward method expects full tgt_seq. 
-            # We can use the model's forward path but we need to be careful about causality.
-            # Im2LatexModel.forward takes (images, tgt_seq).
-            # But here we want to run step-by-step or just re-run full sequence each time.
-            # Re-running full sequence is easier (Greedy).
+            # model tam hedef dizisini bekler
+            # adim adim gitmek yerine her seferinde tum diziyi tekrar calistiriyoruz
             
             logits = model(image_tensor, tgt_tensor) # [B, seq_len, vocab_size]
             
-            # Get the predicted token for the LAST position
+            # son pozisyon icin tahmin edilen tokeni al
             last_token_logits = logits[0, -1, :]
             predicted_token = last_token_logits.argmax(dim=0).item()
             
@@ -57,15 +85,15 @@ def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
             
             tgt_indices.append(predicted_token)
             
-        # Convert indices to string
-        tokens = [itos[idx] for idx in tgt_indices[1:]] # Skip <sos>
+        # indeksleri stringe cevir
+        tokens = [itos[idx] for idx in tgt_indices[1:]] # <sos> atla
         return " ".join(tokens)
 
 def main():
     print(f"Using device: {DEVICE}")
     stoi, itos = load_vocab()
     
-    # Load Model
+    # modeli yukle
     model = Im2LatexModel(vocab_size=len(stoi)).to(DEVICE)
     try:
         model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
@@ -74,9 +102,9 @@ def main():
         print(f"Error loading weights: {e}")
         return
 
-    # Prepare Image
+    # fotografi hazirla
     try:
-        image = Image.open(IMG_PATH).convert("RGB")
+        image = preprocess_for_inference(IMG_PATH)
     except FileNotFoundError:
         print(f"Image not found at {IMG_PATH}")
         return
@@ -89,15 +117,16 @@ def main():
     
     img_tensor = transform(image).unsqueeze(0).to(DEVICE) # [1, 3, 384, 384]
     
-    # Run Inference
+    # tahmin et
     print(f"Vocab size: {len(stoi)}")
     print("Running inference...")
     
-    # Image Stats Debug
+    
+    # goruntu istatistikleri (debug)
     extrema = image.getextrema()
     print(f"Image Extrema (RGB): {extrema}")
     
-    # Check first few steps detail
+    # ilk birkac adimi kontrol et
     model.eval()
     with torch.no_grad():
          tgt_indices = [stoi["<sos>"]]
