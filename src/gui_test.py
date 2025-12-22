@@ -5,9 +5,9 @@ import io
 import base64
 import threading
 import sympy as sp
-import Solver_mod as solver
+import Solver as solver
 from numpy.matlib import empty
-from Solver_mod import MathStep
+from Solver import MathStep
 from sympy import sin, cos, tan, pi
 from latex2sympy2_extended import latex2sympy
 import re
@@ -451,10 +451,7 @@ def main(page: ft.Page) -> None:
             ], alignment=ft.MainAxisAlignment.START),
 
             ft.Container(
-                content=ft.Column([
-                    latex_widget_getir(inp, "Girdi:"),
-                    latex_widget_getir(out, "=")
-                ]),
+                content=latex_widget_getir(inp, "Girdi:"),
                 padding=ft.padding.only(left=10, top=5)
             )
         ]
@@ -469,6 +466,14 @@ def main(page: ft.Page) -> None:
             icerik_listesi.append(
                 ft.Column(alt_adim_containerlari, spacing=5)
             )
+
+        # --- 6. Çıktı ---
+        icerik_listesi.append(
+            ft.Container(
+                content=latex_widget_getir(out, "="),
+                padding=ft.padding.only(left=10, top=5)
+            )
+        )
 
         return ft.Container(
             content=ft.Column(icerik_listesi, spacing=5),
