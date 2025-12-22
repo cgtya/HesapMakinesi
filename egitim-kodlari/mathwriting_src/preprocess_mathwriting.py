@@ -14,7 +14,7 @@ from grid_helper import add_grid
 # synthetic veri icin (+400k)
 SYNTHETIC = False
 
-# islemci sayisi (core sayisi kadar)
+# islemci sayisi (islemci cekirdegi sayisi kadar)
 num_workers = os.cpu_count() or 4
 
 # rastgele seed
@@ -24,7 +24,7 @@ random.seed(42)
 ENABLE_GRID_AUGMENTATION = True
 GRID_PROBABILITY = 1    # kareli kagit olma olasiligi (0.0 - 1.0)
 
-# kalın kalem
+# kalın kalem   (normal aralık 1-4px / kalın aralık 1-6px)
 THICK = False
 
 
@@ -110,7 +110,7 @@ def render_traces(traces, output_path, dpi=100):
     # farkli kalemleri simule etmek icin rastgele kalinlik
     linewidth = random.uniform(1.0, 4.0)
     if THICK:
-        linewidth = random.uniform(4.0, 8.0)
+        linewidth = random.uniform(1.0, 6.0)
 
     # Grid (Kareli kagit) eklentisi
     if ENABLE_GRID_AUGMENTATION and random.random() < GRID_PROBABILITY:
@@ -177,7 +177,7 @@ def process_dataset(input_dir, output_img_dir, output_csv_path, subset="test"):
     print(f"kullanilan islemci sayisi: {num_workers}")
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        # gorvleri dagit
+        # cekirdeklere gorevleri dagit
         futures = {executor.submit(process_single_file, f, output_img_dir): f for f in files}
         
         for future in tqdm(as_completed(futures), total=len(files), desc=f"Isleniyor ({subset})"):
@@ -205,9 +205,9 @@ if __name__ == "__main__":
     if SYNTHETIC:
         SUBSETS.append("synthetic") # synthetic verisi icin bunu acin
     
-    OUTPUT_IMG_DIR = os.path.join(DATA_ROOT, "processed_images"+"_grid" if ENABLE_GRID_AUGMENTATION else ""+"_thick" if THICK else "")
+    OUTPUT_IMG_DIR = os.path.join(DATA_ROOT, "processed_images"+("_grid" if ENABLE_GRID_AUGMENTATION else "")+("_thick" if THICK else ""))
     
     for subset in SUBSETS:
         print(f"\nIslem basliyor: {subset}")
-        csv_path = os.path.join(DATA_ROOT, f"mathwriting_{subset}"+"_grid" if ENABLE_GRID_AUGMENTATION else ""+"_thick" if THICK else ""+".csv")
-        process_dataset(DATA_ROOT, OUTPUT_IMG_DIR, csv_path, subset)
+        csv_path = os.path.join(DATA_ROOT, f"mathwriting_{subset}"+("_grid" if ENABLE_GRID_AUGMENTATION else "")+("_thick" if THICK else "") + ".csv")
+        process_dataset(DATA_ROOT, OUTPUT_IMG_DIR, csv_path, subset)    
