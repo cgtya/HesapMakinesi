@@ -1,3 +1,4 @@
+.tmpdir
 venv/
 .venv/
 env/
@@ -18,12 +19,13 @@ pyvenv.cfg
 .DS_Store
 lib64
 
-./.tmpdir
-/training_data/formula_images_processed
+
+# egitim verileri
+training_data
+egitim_sonuclari
 *.png
 *.json
-checkpoint_*
-optimizer_*
-scaler_*
-/training_old
 islem_log.txt
+
+# geciciler
+ign_*

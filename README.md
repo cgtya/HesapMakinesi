@@ -1,3 +1,16 @@
+## mathwriting branch!!
+https://arxiv.org/html/2404.10690v2
+mathwriting dosyalarını indirdikten sonra tgz içeriğini training_data klasörüne at
+
+(./training_data/mathwriting-2024/..) şeklinde
+
+ardından preprocess_mathwriting.py scriptini çalıştır 
+sentetik veri de kullanılacaksa preprocess ve train scriptlerinde belirtilen değişkenleri değiştir (+400k veri için)
+
+ardından eğitim başlatılabilir
+
+
+
 terminalde proje klasörüne gir
 
 "python -m venv ." yada "python3 -m venv ."
