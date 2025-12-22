@@ -1,14 +1,13 @@
-import json
-from dataclasses import dataclass, field
-from typing import List, Optional, Any
+﻿from dataclasses import dataclass, field
+from typing import List, Any
 
 from sympy import (
-    Symbol, latex, Integral, Derivative, Add, Mul, Pow, 
+    Symbol, latex, Integral, Derivative, Add, Mul, Pow,
     diff, Basic, sympify
 )
 from latex2sympy2_extended import latex2sympy
 
-# SADECE manualintegrate.py icinde kesin var olan temel kurallari import ediyoruz
+# Manuel integral kurallari
 from sympy.integrals.manualintegrate import (
     manualintegrate, integral_steps, AtomicRule,
     AddRule, ConstantTimesRule, ConstantRule, PowerRule, NestedPowRule, URule,
@@ -16,28 +15,7 @@ from sympy.integrals.manualintegrate import (
     TrigRule, ExpRule, ReciprocalRule, DontKnowRule
 )
 
-# --- 1. VERI MODELI ---
-@dataclass
-class MathStep:
-    type: str             # "Integral", "Derivative", "Simplification"
-    rule: str             # kural Adi (Orn: PowerRule)
-    input_latex: str      # islem oncesi ifade
-    output_latex: str     # islem sonrasi ifade
-    description: str      # aciklama
-    substeps: List['MathStep'] = field(default_factory=list)    # alt adimlar
-
-    def to_dict(self):
-        return {
-            "type": self.type,
-            "rule": self.rule,
-            "input": self.input_latex,
-            "output": self.output_latex,
-            "description": self.description,
-            "substeps": [s.to_dict() for s in self.substeps]
-        }
-
-
-# --- 1.5. TUREV KURAL SINIFLARI (MANUEL) ---
+# turev kurallari
 @dataclass
 class DerivRule:
     expr: Any
@@ -86,8 +64,28 @@ class LogDiffRule(DerivRule):
     arg: Any
     base: Any
 
-# --- 2. TUREV VE INTEGRAL KURAL CEVIRICILERI ---
+# --- 1. VERI MODELI ---
+@dataclass
+class MathStep:
+    type: str  # "Integral", "Derivative", "Simplification"
+    rule: str  # kural Adi
+    input_latex: str  # islem oncesi
+    output_latex: str  # islem sonrasi
+    description: str  # aciklama
+    substeps: List['MathStep'] = field(default_factory=list)  # alt adimlar
 
+    def to_dict(self):
+        return {
+            "type": self.type,
+            "rule": self.rule,
+            "input": self.input_latex,
+            "output": self.output_latex,
+            "description": self.description,
+            "substeps": [s.to_dict() for s in self.substeps]
+        }
+
+
+# --- 2. KURAL CEVIRICILERI ---
 class DerivativeConverter:
 
     """
@@ -186,17 +184,17 @@ class DerivativeConverter:
         
         if isinstance(rule, ConstantDiffRule):
             step.rule = "ConstantRule"
-            step.description = "Sabit sayinin turevi 0'dir."
+            step.description = "Sabit sayının türevi 0'dır."
             step.output_latex = "0"
             
         elif isinstance(rule, IdentityDiffRule):
             step.rule = "IdentityRule"
-            step.description = "Degiskenin kendisine gore turevi 1'dir."
+            step.description = "Değişkenin kendisine göre türevi 1'dir."
             step.output_latex = "1"
             
         elif isinstance(rule, AddDiffRule):
             step.rule = "SumRule"
-            step.description = "Toplam Turevi: Her terimin ayri ayri turevi alinir."
+            step.description = "Toplam Türevi: Her terimin ayrı ayrı türevi alınır."
             terms_out = []
             for r in rule.terms:
                 s = self._convert_rule_to_step(r)
@@ -214,7 +212,7 @@ class DerivativeConverter:
             step.rule = "PowerRule"
             n = rule.exp
             # n*x^(n-1)
-            step.description = "Us Kurali: Us basa carpan olarak gelir, us bir azaltilir."
+            step.description = "Üs Kuralı: Üs başa çarpan olarak gelir, üs bir azaltılır."
             from sympy import Number
             new_exp = n - 1
             if new_exp == 0:
@@ -226,7 +224,7 @@ class DerivativeConverter:
 
         elif isinstance(rule, ProductDiffRule):
             step.rule = "ProductRule"
-            step.description = "Carpim Kurali: Birincinin turevi x ikinci + ikincinin turevi x birinci"
+            step.description = "Çarpım Kuralı: Birincinin türevi çarpı ikinci + ikincinin türevi çarpı birinci."
             
             total_sum = []
             terms = rule.terms
@@ -262,7 +260,7 @@ class DerivativeConverter:
             
         elif isinstance(rule, ChainDiffRule):
             step.rule = "ChainRule"
-            step.description = "Zincir Kurali: Dis fonksiyonun turevi (ic aynen) x ic fonksiyonun turevi"
+            step.description = "Zincir Kuralı: Dış fonksiyonun türevi (iç aynen kalır) çarpı iç fonksiyonun türevi."
             
             inner_step = self._convert_rule_to_step(rule.inner_deriv)
             step.substeps.append(inner_step)
@@ -298,13 +296,13 @@ class DerivativeConverter:
             
         elif isinstance(rule, TrigDiffRule):
              step.rule = "TrigRule"
-             step.description = f"{rule.func_name} fonksiyonunun turevi."
+             step.description = f"{rule.func_name} fonksiyonunun türevi."
              res = diff(rule.expr, rule.variable)
              step.output_latex = latex(res)
              
         elif isinstance(rule, ExpDiffRule):
              step.rule = "ExpRule"
-             step.description = "Ustel fonksiyon turevi."
+             step.description = "Üstel fonksiyon türevi."
              res = diff(rule.expr, rule.variable)
              step.output_latex = latex(res)
         
@@ -312,99 +310,114 @@ class DerivativeConverter:
         # adim adim gostermek istedigimiz icin ham birakmak daha egitici olabilir.
         
         return step
-
-# --- 2. INTEGRAL KURAL CEVIRICISI (SAFE CONVERTER) ---
+    
 class IntegralConverter:
     """
-    sympy kural nesnelerini MathStep nesnesine cevirir.
-    hata cikarabilecek karmasik rule importlari yerine yapisal kontrol yapar.
+    SymPy kural nesnelerini MathStep nesnesine cevirir.
     """
-    
+
     def convert(self, rule: Any, current_expr: Basic = None) -> MathStep:
-        # kural ismini al (Orn: 'AddRule' -> 'Add')
         rule_name = rule.__class__.__name__.replace("Rule", "")
-        
-        # Varsayilan (bos) adim olustur
+
+        # Varsayilan Adim Yapisi
         step = MathStep(
             type="Integral",
             rule=rule_name,
-            input_latex = fr"\int {latex(rule.integrand)} d{latex(rule.variable)}",
-            output_latex="",
+            input_latex=fr"\int {latex(rule.integrand)} d{latex(rule.variable)}",
+            output_latex="",  # Simdilik bos, asagida doldurulacak
             description=f"{rule_name} uygulaniyor.",
             substeps=[]
         )
 
-        # --- A. YAPISAL KURALLAR (RECURSIVE) ---
-        
-        if isinstance(rule, AddRule):
-            step.description = "Toplam Kurali: Terimlerin ayri ayri integrali alinir."
-            
-            # AddRule -> substeps (List)
-            for iter, sub in enumerate(rule.substeps):
-                
-                # latex out kısmını doldurur
-                step.output_latex = step.output_latex + Fr"\int {latex(sub.integrand)} d{sub.variable} "
-                
-                # her integral teriminin arasına '+' koyar
-                if (iter != len(rule.substeps)-1):
-                    step.output_latex += "+ "
-                
+        # --- A. YAPISAL KURALLAR ---
+
+        if isinstance(rule, ConstantTimesRule):
+            step.description = "Sabit Katsayı Kuralı: Sabit sayı integralin dışına alınır."
+            const_latex = latex(rule.constant)
+
+            # 1. Alt integrali coz (Recursive)
+            sub_step_obj = self.convert(rule.substep, None)
+            step.substeps.append(sub_step_obj)
+
+            # 2. Nihai sonucu hesapla (Evaluating)
+            # Bu kisim sorununuzu cozen yer: rule.eval() sonucu hesaplar.
+            final_res_latex = latex(rule.eval())
+            step.output_latex = final_res_latex
+
+            # 3. Carpma islemini gosteren ara adim ekle
+            # Eger alt adimin sonucu varsa ve katsayi varsa, carpimi gosterelim
+            sub_res_latex = sub_step_obj.output_latex
+            if sub_res_latex and sub_res_latex != "0":
+                step.substeps.append(MathStep(
+                    type="Simplification",
+                    rule="Multiplication",
+                    input_latex=fr"{const_latex} \cdot \left( {sub_res_latex} \right)",
+                    output_latex=final_res_latex,
+                    description="Katsayı ile integral sonucu çarpılır ve sadeleştirilir.",
+                    substeps=[]
+                ))
+
+        elif isinstance(rule, AddRule):
+            step.description = "Toplam Kuralı: Terimlerin ayrı ayrı integrali alınır."
+
+            # Alt adimlari ekle
+            for sub in rule.substeps:
                 step.substeps.append(self.convert(sub))
 
-
-
-        # TODO bunu tam anlamadım
-        elif isinstance(rule, PiecewiseRule):
-            step.description = "Parcali Fonksiyon: Her aralik ayri hesaplanir."
-            # PiecewiseRule -> subfunctions (List)
-            if hasattr(rule, 'subfunctions'):
-                for sub in rule.subfunctions:
-                    ctx = getattr(sub, 'context', None)
-                    step.substeps.append(self.convert(sub, ctx))
-
+            # Nihai sonucu hesapla (rule.eval tum toplami hesaplar)
+            step.output_latex = latex(rule.eval())
 
 
         elif isinstance(rule, PartsRule):
-            step.description = "Kismi Integrasyon (Integration by Parts): Kurala gore u ve dv secilir ve formul uygulanir"
-            # PartsRule -> u, dv, second_step (Rule)
+            step.description = "Kısmi İntegrasyon (Integration by Parts)"
             u_latex = latex(rule.u)
             dv_latex = latex(rule.dv)
-            step.output_latex = f"u={u_latex}, \\quad dv={dv_latex},\\quad uv-\\int vdu"
-            
-            # u dv yi bulduktan sonra dv den vye dönüşüm için integral
+
+            # Formül gösterimi
+            step.output_latex = latex(rule.eval())  # Sonucu direkt yaz
+
+            # Detay adimlari
+            step.substeps.append(MathStep(
+                "Info", "Setup", "", "",
+                f"Seçimler: u = {u_latex}, dv = {dv_latex}"
+            ))
+
             if rule.v_step:
-                 v_step_obj = self.convert(rule.v_step, None)
-                 v_step_obj.description = f"dv'den v'yi bulma adimi: " + v_step_obj.description
-                 step.substeps.append(v_step_obj)
-            
-            # kalan integral adimi (second_step)
+                v_step_obj = self.convert(rule.v_step, None)
+                v_step_obj.description = "dv'den v'yi bulma:"
+                step.substeps.append(v_step_obj)
+
             if rule.second_step:
-                # second_step bir Rule nesnesidir, bunu recursive cevir
                 sub_step_obj = self.convert(rule.second_step, None)
                 step.substeps.append(sub_step_obj)
-                
-                
 
-        # TODO u nun turevini de yazdirma isi
+
         elif isinstance(rule, URule):
-            step.description = "Degisken Degistirme (U-Substitution)"
+            step.description = "Değişken Değiştirme (U-Substitution)"
             u_latex = latex(rule.u_func)
-            step.output_latex = f"u = {u_latex}, \\quad \\int {latex(rule.substep.integrand)} du"
-            
-            # URule -> substep 
+            step.output_latex = latex(rule.eval())
+
+            step.substeps.append(MathStep(
+                "Info", "Setup", "", "", f"u = {u_latex} dönüşümü yapılır."
+            ))
+
             if rule.substep:
                 step.substeps.append(self.convert(rule.substep, None))
 
 
-
         elif isinstance(rule, RewriteRule):
             step.description = "Yeniden Yazma (Rewrite)"
-            # RewriteRule -> rewritten (Expr), substep (Rule)
             rewritten_latex = latex(rule.rewritten)
-            step.output_latex = f"\\rightarrow {rewritten_latex}"
+            step.output_latex = latex(rule.eval())
+
+            step.substeps.append(MathStep(
+                "Simplification", "Rewrite",
+                latex(rule.integrand), rewritten_latex,
+                "İfade daha kolay integral alınabilir hale getirilir."
+            ))
+
             if rule.substep:
                 step.substeps.append(self.convert(rule.substep, getattr(rule, 'rewritten', None)))
-        
 
         elif isinstance(rule, AlternativeRule):
             step.description = "Alternatif Yontemler"
@@ -413,233 +426,159 @@ class IntegralConverter:
                 # Sadece ilkini al
                 first_alt = rule.alternatives[0]
                 step.substeps.append(self.convert(first_alt, None))
-        
 
-
-        elif isinstance(rule, ConstantTimesRule):
-            step.description = "Sabit Katsayi Kurali: Sabit sayi integralin disina alinir."
-            const = getattr(rule, 'constant', '')
-            step.output_latex = fr"{const} \int {latex(rule.substep.integrand)}d{rule.variable}"
-            if rule.substep:
-                step.substeps.append(self.convert(rule.substep, None))
-
-        # --- B. TEMEL KURALLAR ---
-        
-
-
-        elif isinstance(rule, AtomicRule):
-
-            if isinstance(rule, ConstantRule): step.description = "Sabit Kurali: Sabit sayinin integrali, sayi ile integral degiskeninin carpimidir."
-            elif isinstance(rule, PowerRule): step.description = "Us Kurali (Power Rule): Us bir arttirilir, ifade olusan yeni usse bolunur."
-            elif isinstance(rule, ReciprocalRule): step.description = "Sonucu ln(x) gelen integral"
-            elif isinstance(rule, ExpRule): step.description = "Ustel Fonksiyon Integrali: Ustel fonksiyon aynen yazilir, ln(taban)'a bolunur (a^x/ln(a))"
-            elif isinstance(rule, TrigRule): step.description = "Trigonometrik Fonksiyon Integrali"
-            elif isinstance(rule, NestedPowRule): step.description = "Ussun ussu kurali"
-            elif isinstance(rule, HyperbolicRule): step.description = "Hiperobolik Fonksiyon Integrali"
-
-            # eger bulunan temel kural implement edilmemisse diye fallback
-            else: step.description = f"Kural: {rule_name}"
-
-            step.output_latex = latex(rule.eval())
-
-
-        # --- C. FALLBACK (DIGER TUM DURUMLAR) ---
+        elif isinstance(rule, PiecewiseRule):
+            step.description = "Parçalı Fonksiyon: Her aralık ayrı hesaplanır."
+            # PiecewiseRule -> subfunctions (List)
+            if hasattr(rule, 'subfunctions'):
+                for sub in rule.subfunctions:
+                    ctx = getattr(sub, 'context', None)
+                    step.substeps.append(self.convert(sub, ctx))
+            try:
+                step.output_latex = latex(rule.eval())
+            except:
+                pass
         
         elif isinstance(rule, DontKnowRule):
-            step.description = "Otomatik cozum bulunamadi."
+            step.description = "Otomatik çözüm bulunamadı."
 
+
+        # --- B. TEMEL KURALLAR (ATOMİK) ---
+        elif isinstance(rule, AtomicRule):
+            # Basit kurallarin sonucunu direkt hesapla
+            step.output_latex = latex(rule.eval())
+
+            if isinstance(rule, ConstantRule):
+                step.description = "Sabit Kuralı: Sabit sayının yanına x eklenir."
+            elif isinstance(rule, PowerRule):
+                step.description = "Üs Kuralı: Üs bir arttırılır, ifade yeni üsse bölünür."
+            elif isinstance(rule, NestedPowRule): 
+                step.description = "Ussun ussu kurali"
+
+            elif isinstance(rule, ExpRule):
+                step.description = "Üstel Fonksiyon Kuralı"
+            elif isinstance(rule, TrigRule):
+                step.description = "Trigonometrik İntegral Kuralı"
+            elif isinstance(rule, ReciprocalRule):
+                step.description = "1/x İntegrali (ln|x|)"
+            elif isinstance(rule, HyperbolicRule):
+                step.description = "Hiperbolik Fonksiyon İntegrali"
+            else:
+                step.description = f"Temel Kural: {rule_name}"
+
+        # --- C. DIĞER ---
         else:
-            # TrigSubstitutionRule vb. import edilmeyen ama donebilen kurallar icin
             step.description = f"Kural: {rule_name}"
-            # Eger substep varsa onlar da eklenir
+            try:
+                step.output_latex = latex(rule.eval())
+            except:
+                step.output_latex = ""
+
             if hasattr(rule, 'substep') and rule.substep:
-                 step.substeps.append(self.convert(rule.substep, None))
+                step.substeps.append(self.convert(rule.substep, None))
 
         return step
 
 
 
-# --- 3. ANA COZUCU SINIF ---
+# --- 4. ANA COZUCU SINIF ---
 class MathSolver:
     def __init__(self):
         self.converter = IntegralConverter()
 
-    def solve(self, latex_input: str) -> dict:
+    def solve(self, latex_input: str) -> MathStep:
         try:
-            # 1. Parsing
+            # 1. Latex Parse
             expr = latex2sympy(latex_input)
-            
-            # 2. Agaci Gezme
+
+            # 2. Cozum Agacini Gez
             result_step = self._traverse_expr(expr)
-            
-            # 3. Nihai Sonuc
-            final_res = expr.doit()
-            
-            return {
-                "input_latex": latex_input,
-                "result_latex": latex(final_res),
-                "steps": result_step.to_dict()
-            }
+
+            return result_step
+
         except Exception as e:
-            return {"error": str(e), "details": "Parse veya cozum hatasi"}
+            return MathStep(
+                type="Error",
+                rule="Exception",
+                input_latex=latex_input,
+                output_latex="Hata",
+                description=f"Çözüm hatası: {str(e)}",
+                substeps=[]
+            )
 
     def _traverse_expr(self, expr: Basic) -> MathStep:
-        """
-        Ifade agacini gez:
-            Integral ise SymPy manualintegrate kullan.
-            Turev ise manuel turev kullan.
-            Islem ise alt dallara in.
-        """
-        
-        # --- DURUM 1: INTEGRAL ---
+        # --- A. INTEGRAL ---
         if isinstance(expr, Integral):
             function = expr.function
             limits = expr.limits
-            var = limits[0][0] # Ilk degisken (dx)
-            
-            # Adimlari bul
+            var = limits[0][0]
+
             try:
+                # SymPy manualintegrate adimlarini al
                 rule_tree = integral_steps(function, var)
                 step = self.converter.convert(rule_tree, function)
-                
-                # Belirli integral mi? (Sinirlar var mi?)
+
+                # Belirli integral ise (Sinirlar varsa)
                 if len(limits[0]) == 3:
                     lower, upper = limits[0][1], limits[0][2]
-                    # Manuel integral sonucunu hesapla
                     indef_result = manualintegrate(function, var)
-                    
-                    # Sinirlari koyma adimi
                     val_upper = indef_result.subs(var, upper)
                     val_lower = indef_result.subs(var, lower)
-                    
+
+                    final_val = val_upper - val_lower
+
                     bound_step = MathStep(
                         "DefiniteIntegral", "Limits",
                         latex(indef_result),
-                        latex(val_upper - val_lower),
-                        f"Sinirlar yerine konulur: F({upper}) - F({lower})"
+                        latex(final_val),
+                        f"Sınırlar yerine konulur: F({upper}) - F({lower})"
                     )
                     step.substeps.append(bound_step)
-                    
+                    step.output_latex = latex(final_val)
+
                 return step
             except Exception as e:
-                return MathStep("Error", "IntegralError", latex(expr), "", str(e))
+                # Fallback: Eger manualintegrate yapamazsa standart integrate dene
+                return MathStep("Integral", "Standard", latex(expr), latex(expr.doit()), "İntegral hesaplanıyor.")
 
-        # --- DURUM 2: TUREV ---
+        # --- B. TUREV ---
         elif isinstance(expr, Derivative):
-            # Turev icin manuel adimlayici
             var = expr.variable_count[0][0]
             func = expr.expr
-            
             converter = DerivativeConverter()
-            try:
-                step = converter.derive(func, var)
-                # Nihai sonuc kontrolu
-                final_res = diff(func, var)
-                # Eger adim adim sonuc ile sympy sonucu cok farkliysa buraya bir check koyulabilir
-                # ama simdilik guveniyoruz.
-                return step
-            except Exception as e:
-                # Fallback
-                res = diff(func, var)
-                return MathStep(
-                    "Derivative", "Result", 
-                    latex(expr), latex(res), 
-                    f"{var} degiskenine gore turev alindi. (Detayli adim hatasi: {e})"
-                )
+            return converter.derive(func, var)
 
-        # --- DURUM 3: DORT ISLEM (Recursive) ---
+        # --- C. ISLEM (ADD, MUL, POW) ---
         elif isinstance(expr, (Add, Mul, Pow)):
+            # Özyinelemeli olarak alt parçaları çöz
             substeps = []
-            has_action = False
-            
+            has_calculus = False
+
             for arg in expr.args:
                 child_step = self._traverse_expr(arg)
-                # Eger alt dalda bir integral/turev islemi varsa alt adim olarak ekle
+                # Sadece içinde türev/integral geçenleri alt adım yap
                 if child_step.type in ["Integral", "Derivative", "Combination"]:
                     substeps.append(child_step)
-                    has_action = True
-            
-            if has_action:
+                    has_calculus = True
+
+            final_res = expr.doit()
+
+            if has_calculus:
                 return MathStep(
-                    "Combination", "Operation", 
-                    latex(expr), latex(expr.doit()), 
-                    "Islem icindeki terimler cozuluyor.", 
+                    "Combination", "Operation",
+                    latex(expr), latex(final_res),
+                    "İfade içindeki işlemler çözülüyor:",
                     substeps
                 )
+            else:
+                return MathStep("Simplification", "Basic", latex(expr), latex(final_res), "", [])
 
-        # --- DURUM 4: PASIF TERIM (x, 5, sin(x)) ---
-        return MathStep("Atom", "Identity", latex(expr), "", "", [])
+        # --- D. TEMEL ELEMAN (x, 5, sin(x)) ---
+        return MathStep("Atom", "Identity", latex(expr), latex(expr), "", [])
 
-# --- TEST ---
+
 if __name__ == "__main__":
     solver = MathSolver()
-
-    """
-    print("\n--- Test 2: Parts ---")
-    res2 = solver.solve(r"\int_{}^{}x\tandx")
-    print(json.dumps(res2, indent=2))
-    
-    print("--- Test 1: Piecewise / Abs ---")
-    res1 = solver.solve(r"\int |x| dx")
-    print(json.dumps(res1, indent=2))
-    
-    
-    # SENARYO 3: Belirli Integral + Sabit
-    print("\n--- Test 3: Definite Integral ---")
-    res3 = solver.solve(r"\int_0^1 x^2 dx + 5")
-    print(json.dumps(res3, indent=2))
-    
-    
-    
-    
-    print("\n--- Test 4 ---")
-    res3 = solver.solve(r"\int 2x \cos(x^2)dx")
-    print(json.dumps(res3, indent=2))
-    
-
-    print("\n--- Test 5 ---")
-    res3 = solver.solve(r"5\int_{6}^{7}8x^3+5x^2+4x-2dx")
-    print(json.dumps(res3, indent=2))
-    
-    
-
-    print("\n--- Test 6 ---")
-    res3 = solver.solve(r"3+5-5/2")
-    print(json.dumps(res3, indent=2))
-    
-    
-    # Test 1: Nested Chain Rule
-    # d/dx(sin(cos(x^2)))
-    # Outer: sin(u) -> cos(u) * u'
-    # Inner u = cos(v) -> -sin(v) * v'
-    # Inner v = x^2 -> 2x
-
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\frac{d}{dx}(\sin(\cos(x^2)))")
-    print(json.dumps(res3, indent=2))
-    
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\frac{d}{dx}(x^2 e^{3x})")
-    print(json.dumps(res3, indent=2))
-
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\frac{d}{dx}(\frac{x}{x+1})")
-    print(json.dumps(res3, indent=2))
-
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\frac{d}{dx}(\ln(x^2 + 1))")
-    print(json.dumps(res3, indent=2))
-
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\frac{d}{dx}((3x^2 + 1)^5)")
-    print(json.dumps(res3, indent=2))
-
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\frac{d}{dx}(\tan(\sin(x)))")
-    print(json.dumps(res3, indent=2))
-
-
-    print("\n--- Test ---")
-    res3 = solver.solve(r"\int_{}^{}\frac{2}{x^2+4}dx")
-    print(json.dumps(res3, indent=2))
-    """
+    # Test
+    res = solver.solve(r"\int 5x^4 dx")
+    print(res.output_latex)  # x^5 olmalı
