@@ -183,7 +183,7 @@ def main(page: ft.Page) -> None:
 
         except Exception:
             pass
-
+#buraya cemalin
     def on_change_handler(e):
         nonlocal debounce_timer
         if debounce_timer:
@@ -621,9 +621,21 @@ def main(page: ft.Page) -> None:
         yazi_row=ft.Row(controls=[yazi],alignment=ft.MainAxisAlignment.CENTER)
         gorsel_button=ft.ElevatedButton(icon=ft.Icons.ADD_A_PHOTO,text= "Görsel ekleyin",on_click=lambda e: gorsel_ekran_handler(e),style=kose_stili)
         gorsel_row=ft.Row(controls=[gorsel_button],alignment=ft.MainAxisAlignment.CENTER)
+
+        yer_tutucu = ft.Container(
+            width=300,
+            height=300,
+            bgcolor=ft.Colors.GREY_900,
+            border_radius=15,
+            border=ft.border.all(2, ft.Colors.LIGHT_BLUE_ACCENT_100),
+            padding=20,
+            content=ft.Column([ft.Text(value="Görseliniz burada görünecek...")
+            ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+        )
+
         text1 = ft.Text(value="Açıklama:", size=23, color=ft.Colors.AMBER_700, text_align=ft.MainAxisAlignment.CENTER)
-        text2 = ft.Text(value="buraya cemalin yazdığı açıklama gelecek", size=14,text_align=ft.MainAxisAlignment.CENTER)
-        ana_column=ft.Column(controls=[yazi_row,ft.Container(height=20),switch_row,ft.Container(height=20),gorsel_row,ft.Container(height=20),text1,text2],alignment=ft.MainAxisAlignment.CENTER,horizontal_alignment=ft.CrossAxisAlignment.CENTER,expand=True)
+        text2 = ft.Text(value="", size=14,text_align=ft.MainAxisAlignment.CENTER)
+        ana_column=ft.Column(controls=[yazi_row,ft.Container(height=20),switch_row,ft.Container(height=20),gorsel_row,ft.Container(height=10),yer_tutucu,ft.Container(height=10),ft.Container(height=20),text1,text2],alignment=ft.MainAxisAlignment.CENTER,horizontal_alignment=ft.CrossAxisAlignment.CENTER,expand=True)
         page.add(ana_column,alt_bar)
 
 
