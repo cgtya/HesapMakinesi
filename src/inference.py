@@ -98,6 +98,20 @@ def load_model(vocab_size):
     _cached_model = model
     return model
 
+def remove_trailing_dot(latex_str):
+    """
+    modelin ciktisinin sonundaki gereksiz noktalari temizler.
+    """
+    if not latex_str:
+        return latex_str
+    
+    latex_str = latex_str.strip()
+    
+    if latex_str.endswith("." or "\cdot"):
+        latex_str = latex_str[:-1].strip()
+        
+    return latex_str
+
 def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
     model.eval()
     with torch.no_grad():
@@ -131,7 +145,8 @@ def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
             
         # indeksleri stringe cevir
         tokens = [itos[idx] for idx in tgt_indices[1:]] # <sos> atla
-        return " ".join(tokens)
+        latex_output = " ".join(tokens)
+        return remove_trailing_dot(latex_output)
 
 def predict_from_base64(base64_str):
     # disaridan cagrilacak ana fonksiyon
