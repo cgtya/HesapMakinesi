@@ -14,6 +14,8 @@ from PIL import Image as PILImage
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, \
     rationalize
 
+from ocr_src.mathwriting_src.inference import predict_from_base64
+
 # Matplotlib arka plan ayarı
 matplotlib.use('Agg')
 
@@ -164,14 +166,12 @@ def main(page: ft.Page) -> None:
 
         if model_switch.value==True:
             print("Hazır modele gönderildi.")
-            page.add(container)
-            page.update()
-            # adim adim ekrani metodunu ekle buraya
+
+
         else:
             print("Özgün modele gönderildi.")
-            page.add(container)
-            page.update()
-            #adim adim ekrani metodunu ekle buraya
+
+            adim_adim_ekrani(predict_from_base64(secilen_resim.src_base64))
 
     # --- Navigasyon Barı ---
     alt_bar = ft.NavigationBar(
