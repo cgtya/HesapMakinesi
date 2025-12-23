@@ -160,17 +160,7 @@ def main(page: ft.Page) -> None:
 
 
     def gorsel_isleme(e=None):
-        gorsel=ft.Image(src_base64=secilen_resim.src_base64)
-        container=ft.Container(content=gorsel)
-
-        if model_switch.value==True:
-            print("Hazır modele gönderildi.")
-
-
-        else:
-            print("Özgün modele gönderildi.")
-
-            adim_adim_ekrani(predict_from_base64(secilen_resim.src_base64))
+        adim_adim_ekrani(predict_from_base64(secilen_resim.src_base64))
 
     # --- Navigasyon Barı ---
     alt_bar = ft.NavigationBar(
@@ -288,8 +278,8 @@ def main(page: ft.Page) -> None:
     def islem(girdi_string):
         nonlocal soncevap, islemsonrasi
         duzenli = girdi_string.replace("^", "**").replace("ANS", soncevap).replace("×", "*")
-        yerel_degiskenler = {'x': sp.Symbol('x'), 'sin': lambda x: sin(x * pi / 180),
-                             'cos': lambda x: cos(x * pi / 180), 'tan': lambda x: tan(x * pi / 180)}
+        yerel_degiskenler = {'x': sp.Symbol('x'), 'sin': lambda x: sin(x),
+                             'cos': lambda x: cos(x), 'tan': lambda x: tan(x)}
         try:
             donusumler = (standard_transformations + (implicit_multiplication_application, rationalize))
             sonuc_obj = parse_expr(duzenli, local_dict=yerel_degiskenler, transformations=donusumler)
@@ -608,7 +598,7 @@ def main(page: ft.Page) -> None:
     file_picker = ft.FilePicker(on_result=dosya_secildi)
     page.overlay.append(file_picker)
 
-    model_switch=ft.Switch(value=True, active_color=ft.Colors.CYAN_200)
+    model_switch=ft.Switch(value=False, active_color=ft.Colors.CYAN_200)
 
     anlat_buton_gorsel = ft.ElevatedButton(text="֍ Adım adım Çöz...", style=kose_stili, bgcolor=ft.Colors.CYAN_ACCENT_100,
                                     width=172, height=50, on_click=lambda e: gorsel_isleme(e))
@@ -634,7 +624,7 @@ def main(page: ft.Page) -> None:
                                                                                                         "jpeg"]))
         resim_alani = ft.Stack([resim_placeholder, secilen_resim], alignment=ft.alignment.center)
         ana_column = ft.Column(
-            [yazi_row, switch_row, ft.Row([gorsel_button, kirp_butonu], alignment=ft.MainAxisAlignment.CENTER),
+            [yazi_row, ft.Row([gorsel_button, kirp_butonu], alignment=ft.MainAxisAlignment.CENTER),
              ft.Row([resim_alani], alignment=ft.MainAxisAlignment.CENTER),anlat_container], alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER, expand=True, spacing=20)
         page.navigation_bar = alt_bar
