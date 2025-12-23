@@ -6,6 +6,9 @@ from Im2LatexModel import Im2LatexModel
 
 import os
 
+import base64
+import io
+
 # opsiyonel opencv
 try:
     import cv2
@@ -13,9 +16,6 @@ try:
     OPENCV_AVAILABLE = True
 except ImportError:
     OPENCV_AVAILABLE = False
-    print("opencv bulunamadı, gelişmiş işleme devre dışı")
-
-
 
 # ayarlar
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -27,31 +27,76 @@ ITOS_PATH = os.path.join(SAVE_DIR, "itos.json")
 
 IMG_PATH = os.path.join(BASE_DIR, "ign_testfoto/long.png")
 
-def preprocess_for_inference(image_path):
-    # opencv kullanilamazsa standart PIL acilisi
+# model ve sozluk onbellek
+_cached_model = None
+_cached_stoi = None
+_cached_itos = None
+
+def _apply_cv2_processing(img):
+    # opencv islemleri
+    # gri tona cevir
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # acik griyi beyaza it koyuyu koru
+    cleaned = cv2.convertScaleAbs(gray, alpha=1.5, beta=20.0)
+    
+    rgb = cv2.cvtColor(cleaned, cv2.COLOR_GRAY2RGB)
+    return Image.fromarray(rgb)
+
+def preprocess_image_file(image_path):
+    # dosya yolundan okuma
     if not OPENCV_AVAILABLE:
         return Image.open(image_path).convert("RGB")
     
     img = cv2.imread(image_path)
     if img is None:
-        raise FileNotFoundError(f"Image not found: {image_path}")
+        raise FileNotFoundError(f"dosya bulunamadi: {image_path}")
         
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return _apply_cv2_processing(img)
+
+def preprocess_base64_image(base64_str):
+    # base64 verisinden okuma
+    if "," in base64_str:
+        base64_str = base64_str.split(",")[1]
+        
+    image_data = base64.b64decode(base64_str)
     
-    # bu islem acik gri (kagit dokusu gibi) pikselleri beyaza iter, koyu kisimlari korur
-    cleaned = cv2.convertScaleAbs(gray, alpha=1.5, beta=20.0)
-    
-    rgb = cv2.cvtColor(cleaned, cv2.COLOR_GRAY2RGB)
-    
-    return Image.fromarray(rgb)
+    if OPENCV_AVAILABLE:
+        nparr = np.frombuffer(image_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is not None:
+            return _apply_cv2_processing(img)
+            
+    # opencv yoksa veya hata varsa pil
+    return Image.open(io.BytesIO(image_data)).convert("RGB")
 
 def load_vocab():
+    global _cached_stoi, _cached_itos
+    if _cached_stoi is not None and _cached_itos is not None:
+        return _cached_stoi, _cached_itos
+
     with open(STOI_PATH, "r", encoding="utf-8") as f:
         stoi = json.load(f)
     with open(ITOS_PATH, "r", encoding="utf-8") as f:
         itos = json.load(f)
         itos = {int(k): v for k, v in itos.items()}
+    
+    _cached_stoi = stoi
+    _cached_itos = itos
     return stoi, itos
+
+def load_model(vocab_size):
+    global _cached_model
+    if _cached_model is not None:
+        return _cached_model
+    
+    # modeli olustur ve agirliklari yukle
+    model = Im2LatexModel(vocab_size=vocab_size).to(DEVICE)
+    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
+    model.eval()
+    
+    _cached_model = model
+    return model
 
 def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
     model.eval()
@@ -88,66 +133,76 @@ def greedy_decode(model, image_tensor, max_len=150, stoi=None, itos=None):
         tokens = [itos[idx] for idx in tgt_indices[1:]] # <sos> atla
         return " ".join(tokens)
 
-def main():
-    print(f"Using device: {DEVICE}")
-    stoi, itos = load_vocab()
-    
-    # modeli yukle
-    model = Im2LatexModel(vocab_size=len(stoi)).to(DEVICE)
+def predict_from_base64(base64_str):
+    # disaridan cagrilacak ana fonksiyon
     try:
-        model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
-        print("Model weights loaded successfully.")
+        # goruntu hazirla
+        image = preprocess_base64_image(base64_str)
+        
+        # model ve sozluk yukle
+        stoi, itos = load_vocab()
+        model = load_model(len(stoi))
+        
+        # tensor donusumu
+        transform = transforms.Compose([
+            transforms.Resize((384, 384)),   
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
+        
+        img_tensor = transform(image).unsqueeze(0).to(DEVICE)
+        
+        # tahmin
+        latex = greedy_decode(model, img_tensor, stoi=stoi, itos=itos)
+        return latex
     except Exception as e:
-        print(f"Error loading weights: {e}")
-        return
+        return f"hata: {str(e)}"
 
-    # fotografi hazirla
+def main():
+    print(f"cihaz: {DEVICE}")
+    
+    # model ve sozluk yuklemesi testi
     try:
-        image = preprocess_for_inference(IMG_PATH)
-    except FileNotFoundError:
-        print(f"Image not found at {IMG_PATH}")
+        stoi, itos = load_vocab()
+        model = load_model(len(stoi))
+        print("model ve sozluk yuklendi")
+    except Exception as e:
+        print(f"yukleme hatasi: {e}")
         return
 
+    # dosya kontrolu
+    try:
+        image = preprocess_image_file(IMG_PATH)
+    except FileNotFoundError:
+        print(f"dosya bulunamadi: {IMG_PATH}")
+        return
+
+    # transform islemleri
     transform = transforms.Compose([
         transforms.Resize((384, 384)),   
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
     
-    img_tensor = transform(image).unsqueeze(0).to(DEVICE) # [1, 3, 384, 384]
+    img_tensor = transform(image).unsqueeze(0).to(DEVICE)
     
-    # tahmin et
-    print(f"Vocab size: {len(stoi)}")
-    print("Running inference...")
-    
-    
-    # goruntu istatistikleri (debug)
-    extrema = image.getextrema()
-    print(f"Image Extrema (RGB): {extrema}")
-    
-    # ilk birkac adimi kontrol et
-    model.eval()
-    with torch.no_grad():
-         tgt_indices = [stoi["<sos>"]]
-         tgt_tensor = torch.LongTensor(tgt_indices).unsqueeze(0).to(DEVICE)
-         
-         logits = model(img_tensor, tgt_tensor)
-         last_logits = logits[0, -1, :]
-         probs = torch.softmax(last_logits, dim=0)
-         top_probs, top_ids = torch.topk(probs, 5)
-         
-         print("Top 5 predictions at start:")
-         for p, idx in zip(top_probs, top_ids):
-             token_str = itos.get(idx.item(), "Unknown")
-             print(f"  Token: '{token_str}' (ID: {idx.item()}), Prob: {p.item():.4f}")
-
-
+    print("test tahmini yapiliyor...")
     latex_output = greedy_decode(model, img_tensor, stoi=stoi, itos=itos)
     
     print("-" * 30)
-    print("Predicted LaTeX:")
+    print("tahmin edilen latex (dosyadan):")
     print(latex_output)
     print("-" * 30)
+    
+    # base64 entegrasyon testi
+    if os.path.exists(IMG_PATH):
+        print("\nbase64 testi baslatiliyor...")
+        with open(IMG_PATH, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode('utf-8')
+            
+        result = predict_from_base64(b64)
+        print("tahmin edilen latex (base64):")
+        print(result)
 
 if __name__ == "__main__":
     main()
