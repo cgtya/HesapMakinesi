@@ -13,8 +13,7 @@ import re
 from PIL import Image as PILImage
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, \
     rationalize
-
-from ocr_src.mathwriting_src.inference import predict_from_base64
+from inference import predict_from_base64
 
 # Matplotlib arka plan ayarı
 matplotlib.use('Agg')
