@@ -7,13 +7,11 @@ include/
 lib/
 lib64/
 share/
-
 __pycache__/
 *.pyc
-
 pyvenv.cfg
 
-# editor settings
+# editor ayarlari
 .vscode/
 .idea/
 .DS_Store
@@ -26,6 +24,10 @@ egitim_sonuclari
 *.png
 *.json
 islem_log.txt
+!ocr_src/mathwriting_model
+!ocr_src/mathwriting_model/itos.json
+!ocr_src/mathwriting_model/stoi.json
+
 
 # geciciler
 ign_*

@@ -16,17 +16,16 @@ except ImportError:
     print("opencv bulunamadı, gelişmiş işleme devre dışı")
 
 
-OPENCV_AVAILABLE = False
-
 
 # ayarlar
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SAVE_DIR = os.path.join(BASE_DIR, "..", "..", "egitim_sonuclari", "mathwriting_exp")
-CHECKPOINT_PATH = os.path.join(SAVE_DIR, "checkpoint_epoch10.pth")
+SAVE_DIR = os.path.join(BASE_DIR, "..", "mathwriting_model")
+CHECKPOINT_PATH = os.path.join(SAVE_DIR, "checkpoint_epoch15.pth")
 STOI_PATH = os.path.join(SAVE_DIR, "stoi.json")
 ITOS_PATH = os.path.join(SAVE_DIR, "itos.json")
-IMG_PATH = os.path.join(BASE_DIR, "ign_testfoto/testbuyuk.png")
+
+IMG_PATH = os.path.join(BASE_DIR, "ign_testfoto/long.png")
 
 def preprocess_for_inference(image_path):
     # opencv kullanilamazsa standart PIL acilisi
