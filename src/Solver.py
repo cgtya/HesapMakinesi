@@ -1,6 +1,6 @@
 ﻿from dataclasses import dataclass, field
 from typing import List, Any
-
+import re
 from sympy import (
     Symbol, latex, Integral, Derivative, Add, Mul, Pow,
     diff, Basic, sympify
@@ -488,6 +488,9 @@ class MathSolver:
 
     def solve(self, latex_input: str) -> MathStep:
         try:
+            # 0. Preprocessing: Fragmented Functions (c o s -> \cos)
+            latex_input = self.fix_fragmented_latex(latex_input)
+            
             # 1. Latex Parse
             expr = latex2sympy(latex_input)
 
@@ -502,9 +505,44 @@ class MathSolver:
                 rule="Exception",
                 input_latex=latex_input,
                 output_latex="Hata",
-                description=f"Çözüm hatası: {str(e)}",
+                description=f"Hata oluştu: {str(e)}",
                 substeps=[]
             )
+
+    def fix_fragmented_latex(self, latex_input: str) -> str:
+        """
+        parcalanmis fonksiyon isimlerini duzeltir.
+        ornek: "s i n" -> "\sin", "c*o*s" -> "\cos"
+        """
+        # duzeltilecek fonksiyonlar
+        funcs = ['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'ln', 'log', 'exp', 'arcsin', 'arccos', 'arctan']
+        
+        # islem yapilan string
+        text = latex_input
+        
+        for func in funcs:
+            # harf harf pattern olustur
+            # her harf arasinda bosluk, * veya \cdot olabilir
+            chars = list(func)
+            pattern_parts = []
+            for i, char in enumerate(chars):
+                pattern_parts.append(re.escape(char))
+                if i < len(chars) - 1:
+                    # ayirici: bosluk, *, \cdot
+                    pattern_parts.append(r'(?:\s|\*|\\cdot)*')
+            
+            pattern = "".join(pattern_parts)
+            
+            # regex ile degistir
+            # eslesme varsa \func seklinde degistir
+            regex = re.compile(pattern, re.IGNORECASE)
+            
+            text = regex.sub(lambda m: f"\\{func}", text)
+            
+        # cift backslash olusursa temizle (\\sin -> \sin)
+        text = text.replace(r"\\", "\\")
+        
+        return text
 
     def _traverse_expr(self, expr: Basic) -> MathStep:
         # --- A. INTEGRAL ---
@@ -571,7 +609,7 @@ class MathSolver:
                     substeps
                 )
             else:
-                return MathStep("Simplification", "Basic", latex(expr), latex(final_res), "", [])
+                return MathStep("Simplification", "Basic", latex(expr), latex(final_res), "Sadeleştirme", [])
 
         # --- D. TEMEL ELEMAN (x, 5, sin(x)) ---
         return MathStep("Atom", "Identity", latex(expr), latex(expr), "", [])
