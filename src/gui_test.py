@@ -654,6 +654,7 @@ def main(page: ft.Page) -> None:
             islemlog_yap()
 
     normal_yap()
+    #naber
     print(latexe_cevir("5/2"))
 
 
