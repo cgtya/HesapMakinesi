@@ -322,11 +322,15 @@ def main(page: ft.Page) -> None:
 
     def sonuc_goster(islem, sonuc, cozum):
         page.clean()
-        adim = ft.ElevatedButton(text="Adım Adım Çöz...", on_click=lambda e: adim_adim_ekrani(latexe_cevir(islem)))
+        adim = ft.ElevatedButton(text="֍ Adım Adım Çöz...",style=kose_stili, bgcolor=ft.Colors.CYAN_ACCENT_100,
+                                        width=172, height=50, on_click=lambda e: adim_adim_ekrani(latexe_cevir(islem)))
         geri = ft.ElevatedButton(text="Geri Dön", on_click=normal_yap)
-        tum_yazi = ft.TextField(value=f"İşlem: {islem}\nSonuç: {sonuc}\n\n Çözüm: {cozum}\n\n Sonuç: {sonuc}",
-                                text_align="left", width=380, read_only=False, border_color="grey", multiline=True)
-        page.add(geri, adim, tum_yazi)
+        tum_yazi = ft.TextField(value=f"İşlem: {islem}\n\n Çözüm: {cozum}\n\n Sonuç: {sonuc}",
+                                text_align="left", width=380, read_only=True, border_color="grey", multiline=True)
+        tus_row = ft.Row(controls=[adim,geri],alignment=ft.MainAxisAlignment.CENTER)
+        yazi_row=ft.Row(controls=[tum_yazi],alignment=ft.MainAxisAlignment.CENTER)
+        ana_column=ft.Column(controls=[tus_row,yazi_row],alignment=ft.MainAxisAlignment.CENTER)
+        page.add(ana_column)
         page.update()
 
     def tus_basma(e):
