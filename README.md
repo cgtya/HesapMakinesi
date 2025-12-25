@@ -9,22 +9,22 @@ Projeyi bilgisayara kopyaladıktan sonra, (build_no_training branch)
 
 * Terminalde proje klasörüne girin
 
-* "python -m venv ." yada "python3 -m venv ."
+* `python -m venv .` yada `python3 -m venv .`
 
-* Windows için: ".\HesapMakinesi\Scripts\activate.bat"
+* Windows için: `.\HesapMakinesi\Scripts\activate.bat`
 
-* Mac/Linux için: "source HesapMakinesi/bin/activate"
+* Mac/Linux için: `source HesapMakinesi/bin/activate`
 
 * Pytorch yüklemesi
 > Pytorch sitesinden kendi sisteminize göre yükleme komutunu alın (https://pytorch.org/get-started/locally/)  
-> PyTorch build : stable  
-> Your os: işletim sistemine göre  
-> Package: pip  
-> Language: python  
-> compute platform: cpu   (eğitim için gpu önerilir (nvidia: cuda, AMD: rocm))  
-> Oluşan komutu terminalde çalıştırın  
+PyTorch build : stable  
+Your os: işletim sistemine göre  
+Package: pip  
+Language: python  
+compute platform: cpu   (eğitim için gpu önerilir (nvidia: cuda, AMD: rocm))  
+Oluşan komutu terminalde çalıştırın  
 
-* "pip install -r requirements.txt"
+* `pip install -r requirements.txt`
 
 * gui_test.py dosyasını çalıştırarak programı kullanabilirsiniz
 
@@ -39,9 +39,9 @@ https://arxiv.org/abs/2404.10690v2 linkte verilen dataset kullanılmıştır.
 
 * Ardından preprocess_mathwriting.py scriptini çalıştırabilirsiniz
 > scriptin içindeki değişkenleri değitirerek farklı türde veriler oluşturabilirsiniz.  
-> SYNTHETIC : Sentetik veri kullanımı +400k daha matematiksel ifade ekler  
-> GRID : Arkaya kareli kareli kağıt görünümü verir  
-> THICK : Kalın kalem kalınlığı artar
+> `SYNTHETIC` : Sentetik veri kullanımı +400k daha matematiksel ifade ekler  
+> `GRID` : Arkaya kareli kağıt görünümü verir  
+> `THICK` : Kalem kalınlığı artar
 
 
 * Ardından eğitim başlatılabilir (train.py)
