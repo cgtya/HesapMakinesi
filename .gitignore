@@ -24,9 +24,8 @@ egitim_sonuclari
 *.png
 *.json
 islem_log.txt
-!ocr_src/mathwriting_model
-!ocr_src/mathwriting_model/itos.json
-!ocr_src/mathwriting_model/stoi.json
+!ocr_src/mathwriting_model/**
+
 
 
 # geciciler

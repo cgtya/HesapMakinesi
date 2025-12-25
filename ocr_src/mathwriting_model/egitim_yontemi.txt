@@ -1,0 +1,13 @@
+epoch   dataset büyüklüğü       label smoothng. batchsize LR    veri arkaplanı  augmentation
+
+1,2,3   def data        200k    0.1 smoothing                   beyaz
+4       synthetic data  600k    0.1 smoothing                   beyaz
+5,6     synthetic data  600k    smoothing off   batch128 2e-4   beyaz
+7,8     synthetic data  600k    0.1 smoothing   batch128 2e-4   beyaz           data augmnt.
+9       synthetic data  600k    0.1 smoothing   batch128 2e-4   kareli düzlem
+10      synthetic data  600k    0.1 smoothing   batch128 2e-4   kareli düzlem   data augmnt.
+11      synthetic data  600k    0.1 smoothing   batch128 2e-4   beyaz           kalın kalem
+12      synthetic data  600k    0.1 smoothing   batch128 2e-4   beyaz
+13      synthetic data  600k    0.1 smoothing   batch128 2e-4   kareli düzlem
+14      synthetic data  600k    0.1 smoothing   batch128 2e-4   beyaz           data augmnt.
+15      synthetic data  600k    0.1 smoothing   batch128 2e-4   kareli düzlem   data augmnt.
