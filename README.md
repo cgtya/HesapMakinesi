@@ -1,34 +1,44 @@
-## mathwriting branch!!
-https://arxiv.org/html/2404.10690v2
-mathwriting dosyalarını indirdikten sonra tgz içeriğini training_data klasörüne at
+# BM201 Proje Ödevi (Görsel işleme özellikli hesap makinesi)
 
-(./training_data/mathwriting-2024/..) şeklinde
+## Yüklemek için:
+### Releases
+Releases kısmından kendi işletim sisteminiz için olan versiyonu indirebilirsiniz.
 
-ardından preprocess_mathwriting.py scriptini çalıştır 
-sentetik veri de kullanılacaksa preprocess ve train scriptlerinde belirtilen değişkenleri değiştir (+400k veri için)
+### Kaynak kodu kullanarak  
+Projeyi bilgisayara kopyaladıktan sonra, (build_no_training branch)
+
+* Terminalde proje klasörüne girin
+
+* "python -m venv ." yada "python3 -m venv ."
+
+* Windows için: ".\HesapMakinesi\Scripts\activate.bat"
+
+* Mac/Linux için: "source HesapMakinesi/bin/activate"
+
+* Pytorch yüklemesi
+> Pytorch sitesinden kendi sisteminize göre yükleme komutunu alın (https://pytorch.org/get-started/locally/)  
+PyTorch build : stable  
+Your os: işletim sistemine göre  
+Package: pip  
+Language: python  
+compute platform: cpu   (eğitim için gpu önerilir (nvidia: cuda, AMD: rocm))  
+Oluşan komutu terminalde çalıştırın  
+
+* "pip install -r requirements.txt"
+
+* gui_test.py dosyasını çalıştırarak programı kullanabilirsiniz
+
+
+## Eğitim hakkında:
+https://arxiv.org/abs/2404.10690v2 linkte verilen dataset kullanılmıştır.  
+
+### Kendi eğitiminizi yürütmek için:  
+* Main branchi bilgisayara kopyalayın ve yukarıda belirtildiği gibi kurulumu gerçekleştirin  
+
+* Linkte verilen dataseti indirin ve training data klasörüne kopyalayın (./training_data/mathwriting-2024/..) şeklinde
+
+* Ardından preprocess_mathwriting.py scriptini çalıştırabilirsiniz
+> scriptin içindeki değişkenleri değitirerek farklı türde veriler oluşturabilirsiniz.
 
 ardından eğitim başlatılabilir
-
-
-
-terminalde proje klasörüne gir
-
-"python -m venv ." yada "python3 -m venv ."
-
-### Windows için:
-".\venv\Scripts\activate"
-
-### Mac/Linux için:
-"source venv/bin/activate"
-
-pytorch sitesinden kendi sistemine göre yükleme komutunu al (https://pytorch.org/get-started/locally/) 
-PyTorch build : stable,
-your os: işletim sistemine göre,
-package: pip,
-language: python,
-compute platform: donanımına göre (cuda nvidia, rocm amd)
-oluşan komutu terminalde çalıştır
-
-
-"pip install -r requirements.txt"
 
