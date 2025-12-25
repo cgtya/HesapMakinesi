@@ -1,3 +1,4 @@
+import sys
 import torch
 import json
 from PIL import Image
@@ -19,13 +20,19 @@ except ImportError:
 
 # ayarlar
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ocr kaynak dizini
-POSSIBLE_OCR_SRC = [
-    os.path.join(BASE_DIR, "ocr_src"),
-    os.path.join(BASE_DIR, "..", "ocr_src")
-]
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+    POSSIBLE_OCR_SRC = [
+        os.path.join(BASE_DIR, "lib", "ocr_src"),
+        os.path.join(BASE_DIR, "ocr_src"),
+    ]
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    POSSIBLE_OCR_SRC = [
+        os.path.join(BASE_DIR, "ocr_src"),
+        os.path.join(BASE_DIR, "..", "ocr_src")
+    ]
 
 OCR_SRC_DIR = None
 for path in POSSIBLE_OCR_SRC:
