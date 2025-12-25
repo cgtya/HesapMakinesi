@@ -17,12 +17,12 @@ Projeyi bilgisayara kopyaladıktan sonra, (build_no_training branch)
 
 * Pytorch yüklemesi
 > Pytorch sitesinden kendi sisteminize göre yükleme komutunu alın (https://pytorch.org/get-started/locally/)  
-PyTorch build : stable  
-Your os: işletim sistemine göre  
-Package: pip  
-Language: python  
-compute platform: cpu   (eğitim için gpu önerilir (nvidia: cuda, AMD: rocm))  
-Oluşan komutu terminalde çalıştırın  
+> PyTorch build : stable  
+> Your os: işletim sistemine göre  
+> Package: pip  
+> Language: python  
+> compute platform: cpu   (eğitim için gpu önerilir (nvidia: cuda, AMD: rocm))  
+> Oluşan komutu terminalde çalıştırın  
 
 * "pip install -r requirements.txt"
 
@@ -38,7 +38,11 @@ https://arxiv.org/abs/2404.10690v2 linkte verilen dataset kullanılmıştır.
 * Linkte verilen dataseti indirin ve training data klasörüne kopyalayın (./training_data/mathwriting-2024/..) şeklinde
 
 * Ardından preprocess_mathwriting.py scriptini çalıştırabilirsiniz
-> scriptin içindeki değişkenleri değitirerek farklı türde veriler oluşturabilirsiniz.
+> scriptin içindeki değişkenleri değitirerek farklı türde veriler oluşturabilirsiniz.  
+> SYNTHETIC : Sentetik veri kullanımı +400k daha matematiksel ifade ekler  
+> GRID : Arkaya kareli kareli kağıt görünümü verir  
+> THICK : Kalın kalem kalınlığı artar
 
-ardından eğitim başlatılabilir
 
+* Ardından eğitim başlatılabilir (train.py)
+> train.py dosyasındaki parametreleri düzenlemeyi unutmayın!

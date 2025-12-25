@@ -26,6 +26,8 @@ TRAIN_CSVS = [
     # os.path.join(BASE_DIR, "..", "..", "training_data", "mathwriting-2024", "mathwriting_synthetic.csv") # synthetic icin bunu ac
 ]
 
+AUGMENT = False # veri üzerinde değişiklikler yaparak eğitimi iyileştirir
+
 VAL_PATH = os.path.join(BASE_DIR, "..", "..", "training_data", "mathwriting-2024", "mathwriting_valid.csv")
 IMAGE_FOLDER = os.path.join(BASE_DIR, "..", "..", "training_data", "mathwriting-2024", "processed_images")
 
@@ -98,7 +100,7 @@ if os.path.exists(LOSS_HISTORY_PATH):
 
 # -----------------------------# 2. Veri Yükleyiciler
 if df is not None and not df.empty and os.path.exists(IMAGE_FOLDER):
-    train_ds = Im2LatexCSV(df, IMAGE_FOLDER, stoi, augment=True)    # augment (ayarlanabilir), veri üzerinde oynamalar yaparak eğitimi iyileştirir
+    train_ds = Im2LatexCSV(df, IMAGE_FOLDER, stoi, augment=AUGMENT)    # augment (ayarlanabilir), veri üzerinde oynamalar yaparak eğitimi iyileştirir
     print("train dataset uzunluğu:", len(train_ds))
     
     # val_ds = Im2LatexCSV(VAL_PATH, IMAGE_FOLDER, stoi) 
