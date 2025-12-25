@@ -8,7 +8,6 @@ import sympy as sp
 import Solver as solver
 from Solver import MathStep
 from sympy import sin, cos, tan, pi
-from latex2sympy2_extended import latex2sympy
 import re
 from PIL import Image as PILImage
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, \

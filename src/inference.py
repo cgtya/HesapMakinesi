@@ -20,7 +20,24 @@ except ImportError:
 # ayarlar
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SAVE_DIR = os.path.join(BASE_DIR, "..", "ocr_src", "mathwriting_model")
+
+# ocr kaynak dizini
+POSSIBLE_OCR_SRC = [
+    os.path.join(BASE_DIR, "ocr_src"),
+    os.path.join(BASE_DIR, "..", "ocr_src")
+]
+
+OCR_SRC_DIR = None
+for path in POSSIBLE_OCR_SRC:
+    if os.path.isdir(path):
+        OCR_SRC_DIR = path
+        break
+
+if OCR_SRC_DIR is None:
+    OCR_SRC_DIR = os.path.join(BASE_DIR, "..", "ocr_src")
+
+SAVE_DIR = os.path.join(OCR_SRC_DIR, "mathwriting_model")
+
 CHECKPOINT_PATH = os.path.join(SAVE_DIR, "checkpoint_epoch15.pth")
 STOI_PATH = os.path.join(SAVE_DIR, "stoi.json")
 ITOS_PATH = os.path.join(SAVE_DIR, "itos.json")
