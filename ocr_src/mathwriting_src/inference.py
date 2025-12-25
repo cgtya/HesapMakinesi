@@ -107,7 +107,7 @@ def remove_trailing_dot(latex_str):
     
     latex_str = latex_str.strip()
     
-    if latex_str.endswith("." or "\cdot"):
+    if latex_str.endswith("." or r"\cdot"):
         latex_str = latex_str[:-1].strip()
         
     return latex_str
