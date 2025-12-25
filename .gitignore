@@ -17,17 +17,4 @@ pyvenv.cfg
 .DS_Store
 lib64
 
-
-# egitim verileri
-training_data
-egitim_sonuclari
-*.png
-*.json
 islem_log.txt
-!ocr_src/mathwriting_model
-!ocr_src/mathwriting_model/itos.json
-!ocr_src/mathwriting_model/stoi.json
-
-
-# geciciler
-ign_*
