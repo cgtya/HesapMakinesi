@@ -2,12 +2,11 @@ import sys
 from cx_Freeze import setup, Executable
 sys.setrecursionlimit(5000)
 
-# Dependencies are automatically detected, but it might need
-# fine tuning.
+
 build_options = {
     'packages': ['torch','torchvision'], 
     'excludes': [],
-    'include_files': [('ocr_src')],
+    'include_files': [('ocr_src', 'lib/ocr_src')],
 }
 
 base = 'gui'
