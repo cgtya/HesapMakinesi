@@ -5,15 +5,15 @@ sys.setrecursionlimit(5000)
 # Dependencies are automatically detected, but it might need
 # fine tuning.
 build_options = {
-    'packages': [], 
-    'excludes': ["pandas", "tqdm"],
-    'include_files': [('../ocr_src', 'ocr_src')],
+    'packages': ['torch','torchvision'], 
+    'excludes': [],
+    'include_files': [('ocr_src')],
 }
 
 base = 'gui'
 
 executables = [
-    Executable('gui_test.py', base=base, target_name="HesapMakinesi")
+    Executable('src/gui_test.py', base=base, target_name="HesapMakinesi")
 ]
 
 setup(name='HesapMakinesi',
