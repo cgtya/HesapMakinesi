@@ -4,12 +4,16 @@ venv/
 env/
 bin/
 include/
+Include
 lib/
+Lib
 lib64/
 share/
+Scripts
 __pycache__/
 *.pyc
 pyvenv.cfg
+
 
 # editor ayarlari
 .vscode/
