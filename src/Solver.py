@@ -512,7 +512,7 @@ class MathSolver:
     def fix_fragmented_latex(self, latex_input: str) -> str:
         """
         parcalanmis fonksiyon isimlerini duzeltir.
-        ornek: "s i n" -> "\sin", "c*o*s" -> "\cos"
+        ornek: "s i n" -> "\\sin", "c*o*s" -> "\\cos"
         """
         # duzeltilecek fonksiyonlar
         funcs = ['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'ln', 'log', 'exp', 'arcsin', 'arccos', 'arctan']
